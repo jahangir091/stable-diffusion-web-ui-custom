@@ -11,7 +11,7 @@
 
 
 # Commandline arguments for webui.py, for example: export COMMANDLINE_ARGS="--medvram --opt-split-attention"
-export COMMANDLINE_ARGS="--listen --port 8001 --api --enable-insecure-extension-access --reinstall-torch --loglevel 'DEBUG' --api-log --log-startup"
+export COMMANDLINE_ARGS="--listen --port 8005 --api --enable-insecure-extension-access --reinstall-torch --loglevel 'DEBUG' --api-log --log-startup"
 
 # python3 executable
 #python_cmd="python3"
