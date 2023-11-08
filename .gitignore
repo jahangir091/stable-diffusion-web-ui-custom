@@ -1,7 +1,7 @@
 __pycache__
 *.ckpt
 *.safetensors
-*.pth
+#*.pth
 /ESRGAN/*
 /SwinIR/*
 /repositories
