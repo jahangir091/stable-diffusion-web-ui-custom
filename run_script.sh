@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 #################################################
-# Please do not make any changes to this file,  #
-# change the variables in webui-user.sh instead #
+#script Installation of sd web ui
+# 1. Use docker image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+# 2. go to /home directory:
+# 3. keep the run_script.sh file here
+# 4. chmod +x run_script.sh
+# 5. just run ./runscript.sh
+#Voila
 #################################################
 
 
