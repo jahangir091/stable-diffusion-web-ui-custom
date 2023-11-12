@@ -15,7 +15,7 @@ from model import Model
 
 
 
-def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_directory=output_directory, video_format='.mp4', model_name=None):
+def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_directory="output/videos/", video_format='.mp4', model_name=None):
     model = Model(device="cuda", dtype=torch.float16)
     params = {
         "t0": t0,
