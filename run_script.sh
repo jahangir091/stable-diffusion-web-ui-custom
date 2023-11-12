@@ -87,7 +87,7 @@ start="start"
 
 if [ "$1" == "$start" ]
 then
-  prepare_installation
+  start_webui
 elif [ "$1" == "$install" ]
 then
   prepare_installation
