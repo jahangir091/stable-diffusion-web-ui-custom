@@ -49,7 +49,7 @@ def text2video_api(_: gr.Blocks, app: FastAPI):
     ):
         video_path = text2video_zero(prompt, t0=t0, t1=t1, video_length=video_length, fps=fps, model_name=model_name)
 
-        return {"video_url": video_path}
+        return {"video_url": "file=output/videoes/" + video_path}
 
 try:
     import modules.script_callbacks as script_callbacks
