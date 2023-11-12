@@ -76,6 +76,7 @@ start_webui(){
   cd
   cd /home/
   cd sduser
+  pip install --upgrade pip
   runuser -u sduser ./webui.sh
 }
 
