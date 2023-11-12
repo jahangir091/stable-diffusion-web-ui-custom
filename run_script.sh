@@ -41,6 +41,8 @@ sudo useradd -m sduser -p 'sduser' -s /bin/bash
 printf "****************************** cd to directory 'sduser' ***************************************************\n"
 cd sduser
 
+rm -f webui.sh
+rm -f webui-user.sh
 
 printf "***************************** Download installation files webui.sh & webui-user.sh  **********************\n"
 wget -q https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/webui.sh
