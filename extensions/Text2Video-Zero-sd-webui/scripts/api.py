@@ -1,18 +1,21 @@
+import time
+import string
+import random
+
+import torch
+
 from fastapi import FastAPI, Body
 
 from modules.api.models import *
 import gradio as gr
 
 
-import string
-import random
 
-import torch
 from model import Model
 
 
 
-def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, model_name=None):
+def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_directory=output_directory, video_format='.mp4', model_name=None):
     model = Model(device="cuda", dtype=torch.float16)
     params = {
         "t0": t0,
@@ -23,7 +26,7 @@ def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, model_name=None
     }
     rand_string = ''.join(random.choices(string.ascii_uppercase +
                                  string.digits, k=10))
-    out_path, fps = f"output/" + rand_string + ".mp4", fps
+    out_path, fps = output_directory + rand_string + video_format, fps
     if not model_name:
         model.process_text2video(prompt, fps=fps, path=out_path, **params)
     else:
@@ -40,16 +43,13 @@ def text2video_api(_: gr.Blocks, app: FastAPI):
         video_length: int = Body(8, title='video length'),
         fps: int = Body(4, title='video fps'),
         model_name: str = Body("", title='model name'),
-
-        # return_mask: bool = Body(False, title='return mask'),
-        # alpha_matting: bool = Body(False, title='alpha matting'),
-        # alpha_matting_foreground_threshold: int = Body(240, title='alpha matting foreground threshold'),
-        # alpha_matting_background_threshold: int = Body(10, title='alpha matting background threshold'),
-        # alpha_matting_erode_size: int = Body(10, title='alpha matting erode size')
     ):
-        video_path = text2video_zero(prompt, t0=t0, t1=t1, video_length=video_length, fps=fps, model_name=model_name)
-
-        return {"video_url": "file=output/videoes/" + video_path}
+        start_time = time.time()
+        output_directory = "output/videos/"
+        video_path = text2video_zero(prompt, t0=t0, t1=t1, video_length=video_length, fps=fps, output_directory=output_directory, model_name=model_name)
+        end_time = time.time()
+        server_process_time = end_time - start_time
+        return {"server_process_time": server_process_time, "video_url": "file=" + output_directory + video_path}
 
 try:
     import modules.script_callbacks as script_callbacks
