@@ -1,0 +1,7 @@
+insightface>=0.7.3
+onnx>=1.14.1
+onnxruntime-gpu>=1.16.0
+opennsfw2>=0.10.2
+tensorflow>=2.13.0
+tensorflow[and-cuda]
+opencv-python==4.8.0.74

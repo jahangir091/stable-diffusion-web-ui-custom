@@ -32,7 +32,7 @@ prepare_installation(){
   apt install nvtop vim -y
 
   printf "\n%s\n" "${delemeter3}"
-  apt install libgl1 libglib2.0-0 -y
+  apt install libgl1 libglib2.0-0 ffmpeg gcc build-essential -y
 
   printf "\n%s\n" "${delemeter4}"
   cmd=$(curl -v -H -s "A: B" curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash)
