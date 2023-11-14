@@ -22,11 +22,15 @@ prepare_installation(){
   delemeter7="\n************************ cd to directory 'sduser' ***************************************************\n"
   delemeter8="\n************************ Download installation files webui.sh & webui-user.sh  **********************\n"
   delemeter9="\n************************ Setting permissions to installation files **********************************\n"
+  delemeter10="\n************************ Removeing ffmpeg if exist in conda **********************************\n"
 
 
   printf "\n%s\n" "${delemeter1}"
   apt update -y
   apt upgrade -y
+
+  printf "\n%s\n" "${delemeter10}"
+  conda remove ffmpeg -y
 
   printf "\n%s\n" "${delemeter2}"
   apt install nvtop vim -y
