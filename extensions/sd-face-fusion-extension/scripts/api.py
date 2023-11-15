@@ -60,7 +60,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         server_process_time = end_time - start_time
         return {
             "server_process_time": server_process_time, 
-            "image_url": "file=" + output_dir + video_path
+            "image_url": "file=" + video_path
         }
 
 
@@ -108,7 +108,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         server_process_time = end_time - start_time
         return {
             "server_process_time": server_process_time, 
-            "video_url": "file=" + output_dir + image_path
+            "video_url": "file=" + image_path
         }
 
     
@@ -126,8 +126,8 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         for response in process_response:
             if response["value"] != None:
                 file_path = response["value"] 
-        if file_path != None:
-            file_path = os.path.relpath(file_path, os.getcwd())
+                if file_path != None:
+                    file_path = os.path.relpath(file_path, os.getcwd())
 
         # removing users data
         os.remove(facefusion.globals.source_path)
