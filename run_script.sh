@@ -44,13 +44,13 @@ prepare_installation(){
   git lfs install
 
   printf "\n%s\n" "${delemeter5}"
-  sudo chmod 777 -R /tmp
+  chmod 777 -R /tmp
 
   cd
   cd /home/
 
   printf "\n%s\n" "${delemeter6}"
-  sudo useradd -m sduser -p 'sduser' -s /bin/bash
+  useradd -m sduser -p 'sduser' -s /bin/bash
 
   printf "\n%s\n" "${delemeter7}"
   cd sduser
