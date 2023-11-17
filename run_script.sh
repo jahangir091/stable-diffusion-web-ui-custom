@@ -46,6 +46,7 @@ prepare_installation(){
   printf "\n%s\n" "${delemeter5}"
   chmod 777 -R /tmp
 
+
   cd
   cd /home/
 
