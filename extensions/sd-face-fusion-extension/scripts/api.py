@@ -19,6 +19,7 @@ from facefusion.face_analyser import get_many_faces
 import os
 import shutil
 import time
+from datetime import datetime, timezone
 import base64
 import cv2
 
@@ -31,6 +32,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         max_size: str = Form("200", title = "maximum size of the images")
     ):
         #  Source image must be an image
+        utc_time = datetime.now(timezone.utc)
         start_time = time.time()
         
         curDir = os.getcwd()
@@ -53,7 +55,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         server_process_time = end_time - start_time
         
         return {
-            "server_hit_time": start_time,
+            "server_hit_time": str(utc_time),
             "server_process_time": server_process_time, 
             "faces": base64_faces,
         }
@@ -93,6 +95,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         target_video_name: str = Form("", title='target video name including extension')
     ):
         #  Source image must be an image
+        utc_time = datetime.now(timezone.utc)
         start_time = time.time()
         
         curDir = os.getcwd()
@@ -129,7 +132,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
-            "server_hit_time": start_time,
+            "server_hit_time": str(utc_time),
             "server_process_time": server_process_time, 
             "url": "file=" + video_path
         }
@@ -143,6 +146,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         target_image_name: str = Form("", title='target image name including extension')
     ):
         #  Source image must be an image
+        utc_time = datetime.now(timezone.utc)
         start_time = time.time()
         
         curDir = os.getcwd()
@@ -178,7 +182,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
-            "server_hit_time": start_time,
+            "server_hit_time": str(utc_time),
             "server_process_time": server_process_time, 
             "url": "file=" + image_path
         }
