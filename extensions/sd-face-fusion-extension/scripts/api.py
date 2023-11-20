@@ -16,7 +16,7 @@ import time
 
 
 def facefusion_api(_: gr.Blocks, app: FastAPI):
-    @app.post('/facefusion/video')
+    @app.post('/sdapi/v1/facefusion/video')
     async def facefusion_video(
         source_image: UploadFile = File(),
         target_video: UploadFile = File(None),
@@ -65,7 +65,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
 
 
     
-    @app.post('/facefusion/image')
+    @app.post('/sdapi/v1/facefusion/image')
     async def facefusion_image(
         source_image: UploadFile = File(),
         target_image: UploadFile = File(None),
