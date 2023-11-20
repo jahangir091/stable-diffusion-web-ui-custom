@@ -3,7 +3,7 @@ import requests
 
 
 def test_options_write(base_url):
-    url_options = f"{base_url}/sdapi/v1/options"
+    url_options = f"{base_url}/sdapi/ai/v1/options"
     response = requests.get(url_options)
     assert response.status_code == 200
 
@@ -19,15 +19,15 @@ def test_options_write(base_url):
 
 
 @pytest.mark.parametrize("url", [
-    "sdapi/v1/cmd-flags",
-    "sdapi/v1/samplers",
-    "sdapi/v1/upscalers",
-    "sdapi/v1/sd-models",
-    "sdapi/v1/hypernetworks",
-    "sdapi/v1/face-restorers",
-    "sdapi/v1/realesrgan-models",
-    "sdapi/v1/prompt-styles",
-    "sdapi/v1/embeddings",
+    "sdapi/ai/v1/cmd-flags",
+    "sdapi/ai/v1/samplers",
+    "sdapi/ai/v1/upscalers",
+    "sdapi/ai/v1/sd-models",
+    "sdapi/ai/v1/hypernetworks",
+    "sdapi/ai/v1/face-restorers",
+    "sdapi/ai/v1/realesrgan-models",
+    "sdapi/ai/v1/prompt-styles",
+    "sdapi/ai/v1/embeddings",
 ])
 def test_get_api_url(base_url, url):
     assert requests.get(f"{base_url}/{url}").status_code == 200

@@ -5,7 +5,7 @@ import requests
 
 @pytest.fixture()
 def url_txt2img(base_url):
-    return f"{base_url}/sdapi/v1/txt2img"
+    return f"{base_url}/sdapi/ai/v1/txt2img"
 
 
 @pytest.fixture()

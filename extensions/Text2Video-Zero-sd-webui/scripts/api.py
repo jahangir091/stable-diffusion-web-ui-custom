@@ -35,7 +35,7 @@ def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_director
 
 
 def text2video_api(_: gr.Blocks, app: FastAPI):
-    @app.post("/sdapi/v1/txt2video")
+    @app.post("/sdapi/ai/v1/txt2video")
     async def text2video(
         prompt: str = Body("", title='prompt'),
         t0: int = Body(44, title='t0 value'),

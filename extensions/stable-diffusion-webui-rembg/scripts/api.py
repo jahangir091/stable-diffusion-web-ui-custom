@@ -17,7 +17,7 @@ import rembg
 
 
 def rembg_api(_: gr.Blocks, app: FastAPI):
-    @app.post("/sdapi/v1/rembg")
+    @app.post("/sdapi/ai/v1/rembg")
     async def rembg_remove(
         input_image: str = Body("", title='rembg input image'),
         model: str = Body("u2net", title='rembg model'), 
