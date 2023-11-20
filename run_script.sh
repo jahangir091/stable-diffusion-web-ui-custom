@@ -23,6 +23,8 @@ prepare_installation(){
   delemeter8="\n************************ Download installation files webui.sh & webui-user.sh  **********************\n"
   delemeter9="\n************************ Setting permissions to installation files **********************************\n"
   delemeter10="\n************************ Removeing ffmpeg if exist in conda **********************************\n"
+  delemeter11="\n************************ Setting up Nginx **********************************\n"
+  delemeter12="\n************************ Started Nginx at port: 8005 **********************************\n"
 
 
   printf "\n%s\n" "${delemeter1}"
@@ -36,7 +38,7 @@ prepare_installation(){
   apt install nvtop vim -y
 
   printf "\n%s\n" "${delemeter3}"
-  apt install libgl1 libglib2.0-0 ffmpeg gcc build-essential -y
+  apt install libgl1 libglib2.0-0 ffmpeg gcc build-essential nginx -y
 
   printf "\n%s\n" "${delemeter4}"
   cmd=$(curl -v -H -s "A: B" curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash)
@@ -63,10 +65,16 @@ prepare_installation(){
   printf "\n%s\n" "${delemeter8}"
   wget -q https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/webui.sh
   wget -q https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/webui-user.sh
+  wget https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/nginx_settings.conf -P /etc/nginx/sites-available/
 
   printf "\n%s\n" "${delemeter9}"
   chmod +x webui.sh
   chmod +x webui-user.sh
+
+  printf "\n%s\n" "${delemeter11}"
+  ln -s /etc/nginx/sites-available/nginx_settings.conf /etc/nginx/sites-enabled/
+  service nginx start
+  service nginx restart
 }
 
 start_webui(){
