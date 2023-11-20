@@ -65,7 +65,6 @@ prepare_installation(){
   printf "\n%s\n" "${delemeter8}"
   wget -q https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/webui.sh
   wget -q https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/webui-user.sh
-  wget https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/nginx_settings.conf -P /etc/nginx/sites-available/
 
   printf "\n%s\n" "${delemeter9}"
   chmod +x webui.sh
@@ -74,6 +73,7 @@ prepare_installation(){
   printf "\n%s\n" "${delemeter11}"
   rm /etc/nginx/sites-available/nginx_settings.conf
   rm /etc/nginx/sites-enabled/nginx_settings.conf
+  wget https://raw.githubusercontent.com/jahangir091/stable-diffusion-web-ui-custom/master/nginx_settings.conf -P /etc/nginx/sites-available/
   ln -s /etc/nginx/sites-available/nginx_settings.conf /etc/nginx/sites-enabled/
 
   printf "\n%s\n" "${delemeter12}"
