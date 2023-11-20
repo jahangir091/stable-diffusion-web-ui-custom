@@ -26,7 +26,7 @@ import cv2
 
 
 def facefusion_api(_: gr.Blocks, app: FastAPI):
-    @app.post('/facefusion/faces')
+    @app.post('/sdapi/ai/v1/facefusion/faces')
     async def extract_face(
         source_image: UploadFile = File(),
         max_size: str = Form("200", title = "maximum size of the images")
@@ -88,7 +88,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         
 
     
-    @app.post('/facefusion/video')
+    @app.post('/sdapi/ai/v1/facefusion/video')
     async def facefusion_video(
         source_image: UploadFile = File(),
         target_video: UploadFile = File(None),
@@ -139,7 +139,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
 
 
     
-    @app.post('/facefusion/image')
+    @app.post('/sdapi/ai/v1/facefusion/image')
     async def facefusion_image(
         source_image: UploadFile = File(),
         target_image: UploadFile = File(None),
