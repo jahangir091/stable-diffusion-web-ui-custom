@@ -72,6 +72,8 @@ prepare_installation(){
   chmod +x webui-user.sh
 
   printf "\n%s\n" "${delemeter11}"
+  rm /etc/nginx/sites-available/nginx_settings.conf
+  rm /etc/nginx/sites-enabled/nginx_settings.conf
   ln -s /etc/nginx/sites-available/nginx_settings.conf /etc/nginx/sites-enabled/
 
   printf "\n%s\n" "${delemeter12}"
