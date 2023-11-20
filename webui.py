@@ -29,7 +29,7 @@ def api_only():
 
     initialize.initialize()
 
-    app = FastAPI()
+    app = FastAPI(docs_url="/sdapi/ai/docs", redoc_url="/sdapi/ai/docs")
     initialize_util.setup_middleware(app)
     api = create_api(app)
 
