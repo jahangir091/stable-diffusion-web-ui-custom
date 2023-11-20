@@ -73,6 +73,8 @@ prepare_installation(){
 
   printf "\n%s\n" "${delemeter11}"
   ln -s /etc/nginx/sites-available/nginx_settings.conf /etc/nginx/sites-enabled/
+
+  printf "\n%s\n" "${delemeter12}"
   service nginx start
   service nginx restart
 }
