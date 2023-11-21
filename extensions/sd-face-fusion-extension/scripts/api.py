@@ -5,17 +5,89 @@ from fastapi import File, UploadFile, Form
 from typing import List, Optional, Tuple
 import gradio as gr
 
+from modules.api import api
+
 import facefusion.globals
 from facefusion.utilities import is_image, is_video
 from facefusion.uis.components.output import predict, start
  
 from facefusion.uis.typing import Update
+from facefusion.typing import Frame
+from facefusion.vision import read_static_image, resize_frame_dimension 
+from facefusion.face_analyser import get_many_faces
+
 import os
 import shutil
 import time
+from datetime import datetime, timezone
+import base64
+import cv2
+
 
 
 def facefusion_api(_: gr.Blocks, app: FastAPI):
+    @app.post('/sdapi/ai/v1/facefusion/faces')
+    async def extract_face(
+        source_image: UploadFile = File(),
+        max_size: str = Form("200", title = "maximum size of the images")
+    ):
+        #  Source image must be an image
+        utc_time = datetime.now(timezone.utc)
+        start_time = time.time()
+        
+        curDir = os.getcwd()
+        input_dir = curDir + "/output/input/"
+        source_file_location = input_dir + source_image.filename
+        save_file(source_image, source_file_location)
+
+        static_image = read_static_image(source_file_location)
+        faces = get_faces_frames(static_image)
+
+        try:
+            max_size_int = int(max_size)
+        except ValueError:
+            raise HTTPException(status_code=422, detail= "max_size couldn't be converted to integer")
+        
+        base64_faces = frames_to_base64(faces, max_size_int)
+        os.remove(source_file_location)
+
+        end_time = time.time()
+        server_process_time = end_time - start_time
+        
+        return {
+            "server_hit_time": str(utc_time),
+            "server_process_time": server_process_time, 
+            "faces": base64_faces,
+        }
+
+    
+    def frames_to_base64(frames, max_size: int):
+        frames_b64 = []
+        #  iterate frames and convert each of them to base64
+        for frame in frames:
+            resized_frame = resize_frame_dimension(frame, max_size, max_size)
+            _, encoded_img = cv2.imencode('.jpg', resized_frame)
+            frames_b64.append(base64.b64encode(encoded_img).decode("utf-8"))
+        return frames_b64   
+
+
+    def get_faces_frames(reference_frame : Frame) -> List[Frame]:
+    	crop_frames = []
+    	faces = get_many_faces(reference_frame)
+    	for face in faces:
+    		start_x, start_y, end_x, end_y = map(int, face['bbox'])
+    		padding_x = int((end_x - start_x) * 0.25)
+    		padding_y = int((end_y - start_y) * 0.25)
+    		start_x = max(0, start_x - padding_x)
+    		start_y = max(0, start_y - padding_y)
+    		end_x = max(0, end_x + padding_x)
+    		end_y = max(0, end_y + padding_y)
+    		crop_frame = reference_frame[start_y:end_y, start_x:end_x]
+    		crop_frames.append(crop_frame)
+    	return crop_frames
+        
+
+    
     @app.post('/sdapi/ai/v1/facefusion/video')
     async def facefusion_video(
         source_image: UploadFile = File(),
@@ -23,6 +95,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         target_video_name: str = Form("", title='target video name including extension')
     ):
         #  Source image must be an image
+        utc_time = datetime.now(timezone.utc)
         start_time = time.time()
         
         curDir = os.getcwd()
@@ -59,8 +132,9 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
+            "server_hit_time": str(utc_time),
             "server_process_time": server_process_time, 
-            "image_url": "file=" + video_path
+            "url": "file=" + video_path
         }
 
 
@@ -72,6 +146,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         target_image_name: str = Form("", title='target image name including extension')
     ):
         #  Source image must be an image
+        utc_time = datetime.now(timezone.utc)
         start_time = time.time()
         
         curDir = os.getcwd()
@@ -107,8 +182,9 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         end_time = time.time()
         server_process_time = end_time - start_time
         return {
+            "server_hit_time": str(utc_time),
             "server_process_time": server_process_time, 
-            "video_url": "file=" + image_path
+            "url": "file=" + image_path
         }
 
     

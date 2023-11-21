@@ -6,6 +6,9 @@ import gradio as gr
 
 import rembg
 
+# import datetime
+from datetime import datetime, timezone
+
 # models = [
 #     "None",
 #     "u2net",
@@ -30,6 +33,8 @@ def rembg_api(_: gr.Blocks, app: FastAPI):
         if not model or model == "None":
             return
 
+        utc_time = datetime.now(timezone.utc)
+        first_time = datetime.now()
         input_image = api.decode_base64_to_image(input_image)
 
         image = rembg.remove(
@@ -42,7 +47,14 @@ def rembg_api(_: gr.Blocks, app: FastAPI):
             alpha_matting_erode_size=alpha_matting_erode_size,
         )
 
-        return {"image": api.encode_pil_to_base64(image).decode("utf-8")}
+        output_image = api.encode_pil_to_base64(image).decode("utf-8")
+        difference = datetime.now() - first_time
+
+        return {
+            "server_hit_time": str(utc_time),
+            "server_time": str(difference),
+            "image": output_image
+        }
 
 try:
     import modules.script_callbacks as script_callbacks
