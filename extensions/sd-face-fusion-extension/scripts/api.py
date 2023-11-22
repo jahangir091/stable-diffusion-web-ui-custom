@@ -90,6 +90,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
     
     @app.post('/sdapi/ai/v1/facefusion/video')
     async def facefusion_video(
+        quality: str = Form("80", title = 'output video quality'),
         source_image: UploadFile = File(),
         target_video: UploadFile = File(None),
         target_video_name: str = Form("", title='target video name including extension')
@@ -97,6 +98,12 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         #  Source image must be an image
         utc_time = datetime.now(timezone.utc)
         start_time = time.time()
+
+        try:
+            quality_int = int(quality)
+            facefusion.globals.output_video_quality = quality_int
+        except ValueError:
+            raise HTTPException(status_code=422, detail= "quality couldn't be converted to integer")
         
         curDir = os.getcwd()
         output_dir = curDir + "/output"
@@ -141,6 +148,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
     
     @app.post('/sdapi/ai/v1/facefusion/image')
     async def facefusion_image(
+        quality: str = Form("80", title = 'output image quality'),
         source_image: UploadFile = File(),
         target_image: UploadFile = File(None),
         target_image_name: str = Form("", title='target image name including extension')
@@ -148,6 +156,12 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
         #  Source image must be an image
         utc_time = datetime.now(timezone.utc)
         start_time = time.time()
+
+        try:
+            quality_int = int(quality)
+            facefusion.globals.output_image_quality = quality_int
+        except ValueError:
+            raise HTTPException(status_code=422, detail= "quality couldn't be converted to integer")
         
         curDir = os.getcwd()
         output_dir = curDir + "/output"
@@ -195,6 +209,7 @@ def facefusion_api(_: gr.Blocks, app: FastAPI):
 
     # isTemplate = True means this target data belongs to us. And should not be deleted
     def process_face_fusion(output_dir: str, isTemplate: bool):
+        print(output_dir)
         process_response = start(output_dir)
 
         # extracting relative file url
