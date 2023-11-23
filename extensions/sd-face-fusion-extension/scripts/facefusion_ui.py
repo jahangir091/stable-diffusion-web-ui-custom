@@ -7,6 +7,11 @@ from facefusion.core import apply_args, get_argument_parser, limit_resources, pr
 from facefusion.processors.frame.modules import face_enhancer, face_swapper, frame_enhancer
 from facefusion.uis.layouts import default
 
+apply_args(get_argument_parser())
+limit_resources()
+face_enhancer.pre_check()
+face_swapper.pre_check()
+frame_enhancer.pre_check()
 
 def on_ui_tabs():
     apply_args(get_argument_parser())
