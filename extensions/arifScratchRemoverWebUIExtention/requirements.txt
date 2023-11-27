@@ -1,0 +1,6 @@
+glob2
+xformers
+scipy
+ftfy
+controlnet_aux
+easydict
