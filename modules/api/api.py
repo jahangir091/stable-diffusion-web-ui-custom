@@ -34,6 +34,12 @@ import piexif
 import piexif.helper
 from contextlib import closing
 
+# Needed for txt2img enhance api
+from modules.txt2img import txt2img, txt2img_process
+from modules.json_helper import get_text2img_data
+from modules.api.models import TextToImageJsonModel
+from modules import StyleSelectorXL
+
 
 def script_name_to_index(name, scripts):
     try:
@@ -209,6 +215,7 @@ class Api:
         self.app = app
         self.queue_lock = queue_lock
         api_middleware(self.app)
+        self.add_api_route("/sdapi/ai/v1/txt2img/generate", self.text2imggenerateapi, methods=["POST"], response_model=models.TextToImageResponseAPI)
         self.add_api_route("/sdapi/ai/v1/txt2img", self.text2imgapi, methods=["POST"], response_model=models.TextToImageResponse)
         self.add_api_route("/sdapi/ai/v1/img2img", self.img2imgapi, methods=["POST"], response_model=models.ImageToImageResponse)
         self.add_api_route("/sdapi/ai/v1/extra-single-image", self.extras_single_image_api, methods=["POST"], response_model=models.ExtrasSingleImageResponse)
@@ -251,6 +258,54 @@ class Api:
 
         self.default_script_arg_txt2img = []
         self.default_script_arg_img2img = []
+
+    def text2imggenerateapi(self, prompt: str, model_id: str, style: str):
+        # load model 
+        shared.opts.sd_model_checkpoint = model_id
+        # reload_model_weights()
+
+        data = get_text2img_data(model_id=model_id)
+
+        if data == None:
+            data = TextToImageJsonModel(model_id="stabilityai/stable-diffusion-xl-refiner-1.0", sampeller_method="Euler", step=40, cfg=9, prompt="", negative_prompt="")
+
+        global_pos_prompt = "high res, 4k render, uhd, high quality, best quality, (highest quality, award winning, masterpiece:1.3)"
+        global_neg_prompt = "EasyNegative, FastNegativeV2, ugly, tiling, poorly drawn face, out of frame, extra limbs, disfigured, deformed, cut off, low contrast, distorted face, jpeg artifacts"
+        
+        positive_prompt = prompt + data.prompt + global_pos_prompt
+        negative_prompt = data.negative_prompt + global_neg_prompt
+
+        if style != "base":
+            positive_prompt = StyleSelectorXL.createPositive(style=style, prompt = prompt + global_pos_prompt)
+            negative_prompt = StyleSelectorXL.createPositive(style=style, prompt = global_neg_prompt)
+        
+        txt2img_process_result = txt2img_process(id_task="", 
+                prompt = positive_prompt, 
+                negative_prompt = negative_prompt, 
+                seed = 1000,
+                prompt_styles=[], 
+                steps = data.step, 
+                sampler_name = data.sampeller_method, 
+                n_iter=1, 
+                batch_size=1, 
+                cfg_scale = data.cfg, 
+                height=512, width=512, 
+                enable_hr=False, 
+                denoising_strength=0.7,
+                hr_scale=2.0, 
+                hr_upscaler="Latent", 
+                hr_second_pass_steps=0, 
+                hr_resize_x=0, 
+                hr_resize_y=0, 
+                hr_checkpoint_name="", 
+                hr_sampler_name="", 
+                hr_prompt="", 
+                hr_negative_prompt="",
+                override_settings_texts="")
+        
+        # unload_model_weights()
+        b64images = list(map(encode_pil_to_base64, txt2img_process_result))
+        return models.TextToImageResponseAPI(images=b64images)
 
     def add_api_route(self, path: str, endpoint, **kwargs):
         if shared.cmd_opts.api_auth:
@@ -664,7 +719,6 @@ class Api:
             return models.TrainResponse(info=f"create embedding error: {e}")
         finally:
             shared.state.end()
-
 
     def create_hypernetwork(self, args: dict):
         try:

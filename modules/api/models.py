@@ -134,10 +134,22 @@ class TextToImageResponse(BaseModel):
     parameters: dict
     info: str
 
+class TextToImageResponseAPI(BaseModel):
+    images: List[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
+
 class ImageToImageResponse(BaseModel):
     images: List[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
     parameters: dict
     info: str
+
+class TextToImageJsonModel(BaseModel):
+    model_id: str
+    sampeller_method: str
+    step: int
+    cfg: float
+    prompt: str
+    negative_prompt: str
+
 
 class ExtrasBaseRequest(BaseModel):
     resize_mode: Literal[0, 1] = Field(default=0, title="Resize Mode", description="Sets the resize mode: 0 to upscale by upscaling_resize amount, 1 to upscale up to upscaling_resize_h x upscaling_resize_w.")
