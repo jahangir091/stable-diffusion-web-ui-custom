@@ -18,6 +18,13 @@ import subprocess
 import base64
 from io import BytesIO
 import  numpy
+from sympy import true, false
+
+#new
+from modules.api import models
+from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, postprocessing, errors, restart, shared_items
+from typing_extensions import Literal
+
 
 device = "cuda"
 
@@ -143,10 +150,49 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             controlnet_conditioning_scale=0,
             mask_image=main_mask
         ).images[0]
+#
+#         {
+#   "resize_mode": 0,
+#   "show_extras_results": true,
+#   "gfpgan_visibility": 0,
+#   "codeformer_visibility": 0,
+#   "codeformer_weight": 0,
+#   "upscaling_resize": 2,
+#   "upscaling_resize_w": 512,
+#   "upscaling_resize_h": 512,
+#   "upscaling_crop": true,
+#   "upscaler_1": "None",
+#   "upscaler_2": "None",
+#   "extras_upscaler_2_visibility": 0,
+#   "upscale_first": false,
+#   "image": ""
+# }
+
+
+        reqDict = models.ExtrasSingleImageResponse()
+        r_m:Literal[0, 1] = 1
+        reqDict['resize_mode'] = r_m
+        reqDict['show_extras_results'] = True
+        reqDict['gfpgan_visibility'] = float(1.0)
+        reqDict['codeformer_visibility'] = float(1.0)
+        reqDict['codeformer_weight'] = float(0.0)
+        reqDict['upscaling_resize'] = float(2.0)
+        reqDict['upscaling_resize_w'] = 512
+        reqDict['upscaling_resize_h'] = 512
+        reqDict['upscaling_crop'] = True
+        reqDict['extras_upscaler_1'] = reqDict.pop('upscaler_1', 'None')
+        reqDict['extras_upscaler_2'] = reqDict.pop('upscaler_2', 'None')
+        reqDict['extras_upscaler_2_visibility'] = 1
+        reqDict['upscale_first'] = False
+
+        reqDict['image'] = without_scratch_Image_output
+
+        result = postprocessing.run_extras(extras_mode=0, image_folder="", input_dir="", output_dir="", save_output=False, **reqDict)
+        upscale_img = result[0][0]
 
 
         #return base64 image
-        opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
+        opencvImage = cv2.cvtColor(numpy.array(upscale_img), cv2.COLOR_RGB2BGR)
         _, encoded_img = cv2.imencode('.jpg', opencvImage)
         img_str = base64.b64encode(encoded_img).decode("utf-8")
         return img_str
