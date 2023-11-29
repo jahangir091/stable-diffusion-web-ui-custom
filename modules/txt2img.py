@@ -121,7 +121,7 @@ def txt2img_process(id_task: str, prompt: str, negative_prompt: str,
         processed = None
 
         if processed is None:
-            processed = processing.process_images(p, sd_model_checkpoint = model_id)
+            processed = processing.process_images_txt2img(p, sd_model_checkpoint = model_id)
 
     shared.total_tqdm.clear()
 

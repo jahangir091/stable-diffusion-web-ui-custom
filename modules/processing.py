@@ -768,7 +768,7 @@ def process_images_txt2img(p: StableDiffusionProcessing, sd_model_checkpoint: st
 
         sd_models.apply_token_merging(p.sd_model, p.get_token_merging_ratio())
 
-        res = process_images_inner(p)
+        res = process_images_inner(p, from_custom_text2img_processing=True, sd_model_checkpoint=sd_model_checkpoint)
 
     finally:
         sd_models.apply_token_merging(p.sd_model, 0)
@@ -784,7 +784,7 @@ def process_images_txt2img(p: StableDiffusionProcessing, sd_model_checkpoint: st
     return res
 
 
-def process_images_inner(p: StableDiffusionProcessing, from_custom_text2img_processing: bool = False) -> Processed:
+def process_images_inner(p: StableDiffusionProcessing, from_custom_text2img_processing: bool = False, sd_model_checkpoint: str='') -> Processed:
     """this is the main loop that both txt2img and img2img use; it calls func_init once inside all the scopes and func_sample once per batch"""
 
     if isinstance(p.prompt, list):
@@ -858,8 +858,11 @@ def process_images_inner(p: StableDiffusionProcessing, from_custom_text2img_proc
 
             if state.interrupted:
                 break
-
-            sd_models.reload_model_weights()  # model can be changed for example by refiner
+            
+            if from_custom_text2img_processing:
+                sd_models.reload_model_weights_txt2img(sd_model_checkpoint=sd_model_checkpoint)
+            else:
+                sd_models.reload_model_weights()  # model can be changed for example by refiner
 
             p.prompts = p.all_prompts[n * p.batch_size:(n + 1) * p.batch_size]
             p.negative_prompts = p.all_negative_prompts[n * p.batch_size:(n + 1) * p.batch_size]
