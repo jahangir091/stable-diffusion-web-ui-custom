@@ -135,7 +135,7 @@ class TextToImageResponse(BaseModel):
     info: str
 
 class TextToImageResponseAPI(BaseModel):
-    server_hit_time: str
+    server_hit_time: str = Field(default=None)
     server_process_time: float
     images: List[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
 
@@ -179,7 +179,7 @@ class ExtrasSingleImageRequest(ExtrasBaseRequest):
     image: str = Field(default="", title="Image", description="Image to work on, must be a Base64 string containing the image's data.")
 
 class ExtrasSingleImageResponse(ExtraBaseResponse):
-    server_hit_time: str
+    server_hit_time: str = Field(default=None)
     server_process_time: float
     image: str = Field(default=None, title="Image", description="The generated image in base64 format.")
 
@@ -191,7 +191,7 @@ class ExtrasBatchImagesRequest(ExtrasBaseRequest):
     imageList: List[FileData] = Field(title="Images", description="List of images to work on. Must be Base64 strings")
 
 class ExtrasBatchImagesResponse(ExtraBaseResponse):
-    server_hit_time: str
+    server_hit_time: str = Field(default=None)
     server_process_time: float
     images: List[str] = Field(title="Images", description="The generated images in base64 format.")
 

@@ -40,7 +40,7 @@ from modules.json_helper import get_text2img_data
 from modules.api.models import TextToImageJsonModel
 from modules import StyleSelectorXL
 import uuid
-from datetime import datetime, timezone
+from datetime import timezone
 
 
 def script_name_to_index(name, scripts):
@@ -263,12 +263,11 @@ class Api:
 
     def text2imggenerateapi(self, prompt: str = Body(title='user prompt'), 
                             model_id: str = Body(title='model unique id'), 
-                            batch_count: int = Body(1, title='no of batch which may produce different type of image at different batch with different seed'),
                             batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"), 
                             style: str = Body("base", title='selected style of user'),
                             size: int = Body(768, title = 'height & width of generated image')):
         start_time = time.time()
-        utc_time = datetime.now(timezone.utc)
+        utc_time = datetime.datetime.now(timezone.utc)
 
         if prompt == None or prompt == "":
             raise HTTPException(status_code=422, detail= "please give a non empty prompt")
@@ -293,7 +292,7 @@ class Api:
                 negative_prompt = negative_prompt,  
                 steps = data.step, 
                 sampler_name = data.sampeller_method,
-                n_iter = batch_count,
+                n_iter = 1,
                 batch_size = batch_size, 
                 cfg_scale = data.cfg, 
                 height = size, width = size,
@@ -306,7 +305,7 @@ class Api:
         end_time = time.time()
         server_process_time = end_time - start_time
 
-        return models.TextToImageResponseAPI(images=b64images, server_process_time=server_process_time, server_hit_time=utc_time)
+        return models.TextToImageResponseAPI(server_hit_time=str(utc_time), server_process_time=server_process_time, images=b64images)
 
     def add_api_route(self, path: str, endpoint, **kwargs):
         if shared.cmd_opts.api_auth:
@@ -509,7 +508,7 @@ class Api:
 
     def extras_single_image_api(self, req: models.ExtrasSingleImageRequest):
         start_time = time.time()
-        utc_time = datetime.now(timezone.utc)
+        utc_time = datetime.datetime.now(timezone.utc)
         reqDict = setUpscalers(req)
 
         reqDict['image'] = decode_base64_to_image(reqDict['image'])
@@ -519,11 +518,11 @@ class Api:
 
         end_time = time.time()
         server_process_time = end_time - start_time
-        return models.ExtrasSingleImageResponse(server_hit_time=utc_time, server_process_time=server_process_time, image=encode_pil_to_base64(result[0][0]), html_info=result[1])
+        return models.ExtrasSingleImageResponse(server_hit_time=str(utc_time), server_process_time=server_process_time, image=encode_pil_to_base64(result[0][0]), html_info=result[1])
 
     def extras_batch_images_api(self, req: models.ExtrasBatchImagesRequest):
         start_time = time.time()
-        utc_time = datetime.now(timezone.utc)
+        utc_time = datetime.datetime.now(timezone.utc)
         reqDict = setUpscalers(req)
 
         image_list = reqDict.pop('imageList', [])
@@ -534,7 +533,7 @@ class Api:
 
         end_time = time.time()
         server_process_time = end_time - start_time
-        return models.ExtrasBatchImagesResponse(server_hit_time=utc_time, server_process_time=server_process_time, images=list(map(encode_pil_to_base64, result[0])), html_info=result[1])
+        return models.ExtrasBatchImagesResponse(server_hit_time=str(utc_time), server_process_time=server_process_time, images=list(map(encode_pil_to_base64, result[0])), html_info=result[1])
 
     def pnginfoapi(self, req: models.PNGInfoRequest):
         if(not req.image.strip()):
