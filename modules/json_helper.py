@@ -19,7 +19,6 @@ def get_text2img_data(model_id: str):
     model_info = 'model_info'
     global_pos_prompt_key = 'global_pos_prompt'
     global_neg_prompt_key = 'global_neg_prompt'
-        
     model_id_key = 'model_id'
     sampeller_method = 'sampeller_method'
     step = 'step'
@@ -32,13 +31,11 @@ def get_text2img_data(model_id: str):
     global_negative_prompt = ""
 
     if global_pos_prompt_key in json_data:
-        global global_positive_prompt
         global_positive_prompt = json_data[global_pos_prompt_key]
     else:
         print("Error: can't get global postive prompt")
 
     if global_neg_prompt_key in json_data:
-        global global_negative_prompt
         global_negative_prompt = json_data[global_neg_prompt_key]
     else:
         print("Error: can't get global negative prompt")
@@ -51,10 +48,6 @@ def get_text2img_data(model_id: str):
     if not isinstance(model_info_dict, list):
         print("Error: model info must be a list")
         return None
-    
-    print(global_positive_prompt)
-    print(global_negative_prompt)
-    print("siam")
         
     # Iterate over each item in the data list
     for item in model_info_dict:
