@@ -410,6 +410,96 @@ def load_model_weights(model, checkpoint_info: CheckpointInfo, state_dict, timer
     timer.record("load VAE")
 
 
+def select_checkpoint_txt2img(sd_model_checkpoint: str):
+    """Raises `FileNotFoundError` if no checkpoints are found."""
+    model_checkpoint = sd_model_checkpoint
+
+    if sd_model_checkpoint == "":
+        print("not a valid sd model. setting default")
+        model_checkpoint = shared.opts.sd_model_checkpoint
+
+    checkpoint_info = checkpoint_aliases.get(model_checkpoint, None)
+    if checkpoint_info is not None:
+        return checkpoint_info
+
+    if len(checkpoints_list) == 0:
+        error_message = "No checkpoints found. When searching for checkpoints, looked at:"
+        if shared.cmd_opts.ckpt is not None:
+            error_message += f"\n - file {os.path.abspath(shared.cmd_opts.ckpt)}"
+        error_message += f"\n - directory {model_path}"
+        if shared.cmd_opts.ckpt_dir is not None:
+            error_message += f"\n - directory {os.path.abspath(shared.cmd_opts.ckpt_dir)}"
+        error_message += "Can't run without a checkpoint. Find and place a .ckpt or .safetensors file into any of those locations."
+        raise FileNotFoundError(error_message)
+
+    checkpoint_info = next(iter(checkpoints_list.values()))
+    if model_checkpoint is not None:
+        print(f"Checkpoint {model_checkpoint} not found; loading fallback {checkpoint_info.title}", file=sys.stderr)
+
+    return checkpoint_info
+
+def reload_model_weights_txt2img(sd_model_checkpoint: str, sd_model=None, info=None):
+    checkpoint_info = info or select_checkpoint_txt2img(sd_model_checkpoint=sd_model_checkpoint)
+
+    timer = Timer()
+
+    if not sd_model:
+        sd_model = model_data.sd_model
+
+    if sd_model is None:  # previous model load failed
+        current_checkpoint_info = None
+    else:
+        current_checkpoint_info = sd_model.sd_checkpoint_info
+        if sd_model.sd_model_checkpoint == checkpoint_info.filename:
+            return sd_model
+
+    sd_model = reuse_model_from_already_loaded(sd_model, checkpoint_info, timer)
+    if sd_model is not None and sd_model.sd_checkpoint_info.filename == checkpoint_info.filename:
+        return sd_model
+
+    if sd_model is not None:
+        sd_unet.apply_unet("None")
+        send_model_to_cpu(sd_model)
+        sd_hijack.model_hijack.undo_hijack(sd_model)
+
+    state_dict = get_checkpoint_state_dict(checkpoint_info, timer)
+
+    checkpoint_config = sd_models_config.find_checkpoint_config(state_dict, checkpoint_info)
+
+    timer.record("find config")
+
+    if sd_model is None or checkpoint_config != sd_model.used_config:
+        if sd_model is not None:
+            send_model_to_trash(sd_model)
+
+        load_model(checkpoint_info, already_loaded_state_dict=state_dict)
+        return model_data.sd_model
+
+    try:
+        load_model_weights(sd_model, checkpoint_info, state_dict, timer)
+    except Exception:
+        print("Failed to load checkpoint, restoring previous")
+        load_model_weights(sd_model, current_checkpoint_info, None, timer)
+        raise
+    finally:
+        sd_hijack.model_hijack.hijack(sd_model)
+        timer.record("hijack")
+
+        script_callbacks.model_loaded_callback(sd_model)
+        timer.record("script callbacks")
+
+        if not sd_model.lowvram:
+            sd_model.to(devices.device)
+            timer.record("move model to device")
+
+    print(f"Weights loaded in {timer.summary()}.")
+
+    model_data.set_sd_model(sd_model)
+    sd_unet.apply_unet()
+
+    return sd_model
+
+
 def enable_midas_autodownload():
     """
     Gives the ldm.modules.midas.api.load_model function automatic downloading.
