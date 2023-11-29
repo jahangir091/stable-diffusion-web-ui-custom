@@ -9,7 +9,7 @@ import requests
 import gradio as gr
 from threading import Lock
 from io import BytesIO
-from fastapi import APIRouter, Depends, FastAPI, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, Request, Response, Body
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
@@ -35,10 +35,11 @@ import piexif.helper
 from contextlib import closing
 
 # Needed for txt2img enhance api
-from modules.txt2img import txt2img, txt2img_process
-from modules.json_helper import get_text2img_data
+from modules.txt2img import txt2img_process
+from modules.json_helper import get_text2img_data, global_negative_prompt, global_positive_prompt
 from modules.api.models import TextToImageJsonModel
 from modules import StyleSelectorXL
+import uuid
 
 
 def script_name_to_index(name, scripts):
@@ -259,53 +260,51 @@ class Api:
         self.default_script_arg_txt2img = []
         self.default_script_arg_img2img = []
 
-    def text2imggenerateapi(self, prompt: str, model_id: str, style: str):
-        # load model 
-        shared.opts.sd_model_checkpoint = model_id
-        # reload_model_weights()
+    def text2imggenerateapi(self, prompt: str = Body(title='user prompt'), 
+                            model_id: str = Body(title='model unique id'), 
+                            batch_count: int = Body(1, title='no of batch which may produce different type of image at different batch with different seed'),
+                            batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"), 
+                            style: str = Body("base", title='selected style of user'),
+                            size: int = Body(768, title = 'height & width of generated image')):
+        start_time = time.time()
+
+        if prompt == None or prompt == "":
+            raise HTTPException(status_code=422, detail= "please give a non empty prompt")
 
         data = get_text2img_data(model_id=model_id)
 
         if data == None:
             data = TextToImageJsonModel(model_id="stabilityai/stable-diffusion-xl-refiner-1.0", sampeller_method="Euler", step=40, cfg=9, prompt="", negative_prompt="")
-
-        global_pos_prompt = "high res, 4k render, uhd, high quality, best quality, (highest quality, award winning, masterpiece:1.3)"
-        global_neg_prompt = "EasyNegative, FastNegativeV2, ugly, tiling, poorly drawn face, out of frame, extra limbs, disfigured, deformed, cut off, low contrast, distorted face, jpeg artifacts"
         
-        positive_prompt = prompt + data.prompt + global_pos_prompt
-        negative_prompt = data.negative_prompt + global_neg_prompt
+        print(data)
+        positive_prompt = prompt + data.prompt + data.global_positive
+        negative_prompt = data.negative_prompt + data.global_negative
 
         if style != "base":
-            positive_prompt = StyleSelectorXL.createPositive(style=style, prompt = prompt + global_pos_prompt)
-            negative_prompt = StyleSelectorXL.createPositive(style=style, prompt = global_neg_prompt)
+            positive_prompt = StyleSelectorXL.createPositive(style=style, prompt = prompt + data.global_positive)
+            negative_prompt = StyleSelectorXL.createPositive(style=style, prompt = data.global_negative)
         
-        txt2img_process_result = txt2img_process(id_task="", 
+        with self.queue_lock:
+            txt2img_process_result = txt2img_process(id_task = str(uuid.uuid1()), 
+                model_id = model_id,
                 prompt = positive_prompt, 
-                negative_prompt = negative_prompt, 
-                seed = 1000,
-                prompt_styles=[], 
+                negative_prompt = negative_prompt,  
                 steps = data.step, 
-                sampler_name = data.sampeller_method, 
-                n_iter=1, 
-                batch_size=1, 
+                sampler_name = data.sampeller_method,
+                n_iter = batch_count,
+                batch_size = batch_size, 
                 cfg_scale = data.cfg, 
-                height=512, width=512, 
-                enable_hr=False, 
-                denoising_strength=0.7,
-                hr_scale=2.0, 
-                hr_upscaler="Latent", 
-                hr_second_pass_steps=0, 
-                hr_resize_x=0, 
-                hr_resize_y=0, 
-                hr_checkpoint_name="", 
-                hr_sampler_name="", 
-                hr_prompt="", 
-                hr_negative_prompt="",
-                override_settings_texts="")
+                height = size, width = size,
+                seed = 1000, 
+                denoising_strength = data.denoising_strength)
         
         # unload_model_weights()
         b64images = list(map(encode_pil_to_base64, txt2img_process_result))
-        return models.TextToImageResponseAPI(images=b64images)
+
+        end_time = time.time()
+        server_process_time = end_time - start_time
+
+        return models.TextToImageResponseAPI(images=b64images, server_process_time=server_process_time)
 
     def add_api_route(self, path: str, endpoint, **kwargs):
         if shared.cmd_opts.api_auth:

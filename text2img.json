@@ -1,29 +1,35 @@
-[
-  {
-    "model_id": "sd_xl_refiner_1.0_0.9vae.safetensors",
-    "sampeller_method": "Euler",
-    "step": "40",
-    "cfg" : "9",
-    "prompt": "high res, 4k render, uhd, realistic, face restoration, high quality, best quality, (highest quality, award winning, masterpiece:1.3), (photo realistic:1.4) ",
-    "negative_prompt": "ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face, out of frame, extra limbs, disfigured, deformed, body out of frame, bad anatomy, watermark, signature, cut off, low contrast, underexposed, overexposed, bad art, beginner, amateur, distorted face"
-  },
+{
+    "global_pos_prompt": "high res, 4k render, uhd, high quality, best quality, (highest quality, award winning, masterpiece:1.3)",
+    "global_neg_prompt": "EasyNegative, FastNegativeV2, ugly, tiling, poorly drawn face, out of frame, extra limbs, disfigured, deformed, cut off, low contrast, distorted face, jpeg artifacts",
+    "model_info": [
+        {
+          "model_id": "sd_xl_refiner_1.0_0.9vae.safetensors",
+          "sampeller_method": "Euler",
+          "step": "40",
+          "cfg" : "9",
+          "denoising_strength": 0.7,
+          "prompt": "high res, 4k render, uhd, realistic, face restoration, high quality, best quality, (highest quality, award winning, masterpiece:1.3), (photo realistic:1.4) ",
+          "negative_prompt": "ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face, out of frame, extra limbs, disfigured, deformed, body out of frame, bad anatomy, watermark, signature, cut off, low contrast, underexposed, overexposed, bad art, beginner, amateur, distorted face"
+        },
 
-  {
-    "model_id": "RealVisXL_V2.0.safetensors",
-    "sampeller_method": "DPM++ 2M Karras",
-    "step": "30",
-    "cfg" : "7",
-    "prompt": "RAW photo, subject, (high detailed skin:1.2), 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
-    "negative_prompt": "(worst quality, low quality, illustration, 3d, 2d, painting, cartoons, sketch), open mouth"
-  },
+        {
+          "model_id": "RealVisXL_V2.0.safetensors",
+          "sampeller_method": "DPM++ 2M Karras",
+          "step": "30",
+          "cfg" : "7",
+          "denoising_strength": 0.7,
+          "prompt": "RAW photo, subject, (high detailed skin:1.2), 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
+          "negative_prompt": "(worst quality, low quality, illustration, 3d, 2d, painting, cartoons, sketch), open mouth"
+        },
 
-  {
-    "model_id": "Disney_Pixar_Cartoon.safetensors",
-    "sampeller_method": "Euler",
-    "step": "40",
-    "cfg" : "7.5",
-    "prompt": "high res, 4k render, uhd, high quality, best quality, (highest quality, award winning, masterpiece:1.3), (photo realistic:1.4)",
-    "negative_prompt": "disfigured, poorly drawn face, cinematic, bad anatomy, beginner, distorted face, bad_prompt_version2-neg, jpeg artifacts, (worst quality, low quality, normal quality:2)"
-  }
-
-]
+        {
+          "model_id": "Disney_Pixar_Cartoon.safetensors",
+          "sampeller_method": "Euler",
+          "step": "40",
+          "cfg" : "7.5",
+          "denoising_strength": 0.7,
+          "prompt": "high res, 4k render, uhd, high quality, best quality, (highest quality, award winning, masterpiece:1.3), (photo realistic:1.4)",
+          "negative_prompt": "disfigured, poorly drawn face, cinematic, bad anatomy, beginner, distorted face, bad_prompt_version2-neg, jpeg artifacts, (worst quality, low quality, normal quality:2)"
+        }
+    ]
+}

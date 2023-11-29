@@ -135,6 +135,7 @@ class TextToImageResponse(BaseModel):
     info: str
 
 class TextToImageResponseAPI(BaseModel):
+    server_process_time: float
     images: List[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
 
 class ImageToImageResponse(BaseModel):
@@ -149,6 +150,10 @@ class TextToImageJsonModel(BaseModel):
     cfg: float
     prompt: str
     negative_prompt: str
+    denoising_strength: float
+    global_positive: str
+    global_negative: str
+
 
 
 class ExtrasBaseRequest(BaseModel):

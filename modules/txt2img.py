@@ -66,7 +66,18 @@ def txt2img(id_task: str, prompt: str, negative_prompt: str, prompt_styles, step
     return processed.images, generation_info_js, plaintext_to_html(processed.info), plaintext_to_html(processed.comments, classname="comments")
 
 
-def txt2img_process(id_task: str, prompt: str, negative_prompt: str, seed: int, prompt_styles, steps: int, sampler_name: str, n_iter: int, batch_size: int, cfg_scale: float, height: int, width: int, enable_hr: bool, denoising_strength: float, hr_scale: float, hr_upscaler: str, hr_second_pass_steps: int, hr_resize_x: int, hr_resize_y: int, hr_checkpoint_name: str, hr_sampler_name: str, hr_prompt: str, hr_negative_prompt, override_settings_texts, *args):
+def txt2img_process(id_task: str, prompt: str, negative_prompt: str, 
+                    model_id: str,
+                    steps: int, sampler_name: str,
+                    n_iter: int, batch_size: int, 
+                    cfg_scale: float, height: int, width: int, 
+                    denoising_strength: float, 
+                    prompt_styles = [], seed = -1, 
+                    enable_hr: bool = False, hr_scale: float = 2.0, 
+                    hr_upscaler: str = "Latent", hr_second_pass_steps: int = 0, 
+                    hr_resize_x: int = 0, hr_resize_y: int = 0, hr_checkpoint_name: str = "", 
+                    hr_sampler_name: str = "", hr_prompt: str = "", hr_negative_prompt = "", 
+                    override_settings_texts = "", *args):
     override_settings = create_override_settings_dict(override_settings_texts)
 
     p = processing.StableDiffusionProcessingTxt2Img(
@@ -110,7 +121,7 @@ def txt2img_process(id_task: str, prompt: str, negative_prompt: str, seed: int, 
         processed = None
 
         if processed is None:
-            processed = processing.process_images(p)
+            processed = processing.process_images(p, sd_model_checkpoint = model_id)
 
     shared.total_tqdm.clear()
 
