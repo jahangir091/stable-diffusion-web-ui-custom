@@ -217,8 +217,8 @@ class Api:
         self.app = app
         self.queue_lock = queue_lock
         api_middleware(self.app)
-        self.add_api_route("/sdapi/ai/v1/txt2img/generate", self.text2imggenerateapi, methods=["POST"], response_model=models.TextToImageResponseAPI)
-        self.add_api_route("/sdapi/ai/v1/txt2img", self.text2imgapi, methods=["POST"], response_model=models.TextToImageResponse)
+        self.add_api_route("/sdapi/ai/v1/txt2img", self.text2imggenerateapi, methods=["POST"], response_model=models.TextToImageResponseAPI)
+        # self.add_api_route("/sdapi/ai/v1/txt2img", self.text2imgapi, methods=["POST"], response_model=models.TextToImageResponse)
         self.add_api_route("/sdapi/ai/v1/img2img", self.img2imgapi, methods=["POST"], response_model=models.ImageToImageResponse)
         self.add_api_route("/sdapi/ai/v1/extra-single-image", self.extras_single_image_api, methods=["POST"], response_model=models.ExtrasSingleImageResponse)
         self.add_api_route("/sdapi/ai/v1/extra-batch-images", self.extras_batch_images_api, methods=["POST"], response_model=models.ExtrasBatchImagesResponse)
@@ -263,6 +263,7 @@ class Api:
 
     def text2imggenerateapi(self, prompt: str = Body(title='user prompt'), 
                             model_id: str = Body(title='model unique id'), 
+                            seed: int = Body(-1, title="seed value"),
                             batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"), 
                             style: str = Body("base", title='selected style of user'),
                             size: int = Body(768, title = 'height & width of generated image')):
@@ -296,7 +297,7 @@ class Api:
                 batch_size = batch_size, 
                 cfg_scale = data.cfg, 
                 height = size, width = size,
-                seed = 1000, 
+                seed = seed, 
                 denoising_strength = data.denoising_strength)
         
         # unload_model_weights()
