@@ -12,10 +12,11 @@ import gradio as gr
 
 
 from model import Model
+from modules import StyleSelectorXL
+from datetime import datetime, timezone
 
 
-
-def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_directory="output/videos/", video_format='.mp4', model_name=None):
+def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_directory="output/videos/", video_format='.mp4', model_name=None, style='base'):
     model = Model(device="cuda", dtype=torch.float16)
     params = {
         "t0": t0,
@@ -26,11 +27,15 @@ def text2video_zero(prompt, t0=44, t1=47, video_length=8, fps=4, output_director
     }
     rand_string = ''.join(random.choices(string.ascii_uppercase +
                                  string.digits, k=10))
+    
+    positive_text = StyleSelectorXL.createPositive(style, prompt)
+    negative_text = StyleSelectorXL.createNegative(style, "")
+
     out_path, fps = output_directory + rand_string + video_format, fps
     if not model_name:
-        model.process_text2video(prompt, fps=fps, path=out_path, **params)
+        model.process_text2video(positive_text, n_prompt=negative_text, fps=fps, path=out_path, **params)
     else:
-        model.process_text2video(prompt, model_name=model_name, fps=fps, path=out_path, **params)
+        model.process_text2video(positive_text, n_prompt=negative_text, model_name=model_name, fps=fps, path=out_path, **params)
     return out_path
 
 
@@ -43,13 +48,20 @@ def text2video_api(_: gr.Blocks, app: FastAPI):
         video_length: int = Body(8, title='video length'),
         fps: int = Body(4, title='video fps'),
         model_name: str = Body("", title='model name'),
+        style: str = Body("base", title='selected style of user')
     ):
         start_time = time.time()
+        utc_time = datetime.now(timezone.utc)
+
         output_directory = "output/videos/"
-        video_path = text2video_zero(prompt, t0=t0, t1=t1, video_length=video_length, fps=fps, output_directory=output_directory, model_name=model_name)
+        video_path = text2video_zero(prompt, t0=t0, t1=t1, video_length=video_length, fps=fps, output_directory=output_directory, model_name=model_name, style=style)
         end_time = time.time()
         server_process_time = end_time - start_time
-        return {"server_process_time": server_process_time, "video_url": "file=" + output_directory + video_path}
+        return {
+            "server_hit_time": utc_time,
+            "server_process_time": server_process_time, 
+            "video_url": "file=" + output_directory + video_path
+        }
 
 try:
     import modules.script_callbacks as script_callbacks
