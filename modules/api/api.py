@@ -287,8 +287,8 @@ class Api:
         negative_prompt = data.negative_prompt + data.global_negative
 
         if style != "base":
-            positive_prompt = StyleSelectorXL.createPositive(style=style, prompt = prompt + data.global_positive)
-            negative_prompt = StyleSelectorXL.createPositive(style=style, prompt = data.global_negative)
+            positive_prompt = StyleSelectorXL.createPositive(style, prompt + data.global_positive)
+            negative_prompt = StyleSelectorXL.createPositive(tyle, data.global_negative)
         
         with self.queue_lock:
             txt2img_process_result = txt2img_process(id_task = str(uuid.uuid1()), 
