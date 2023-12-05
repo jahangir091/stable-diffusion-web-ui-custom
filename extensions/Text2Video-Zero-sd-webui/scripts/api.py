@@ -60,7 +60,7 @@ def text2video_api(_: gr.Blocks, app: FastAPI):
         return {
             "server_hit_time": utc_time,
             "server_process_time": server_process_time, 
-            "video_url": "file=" + output_directory + video_path
+            "video_url": "file=" + video_path
         }
 
 try:

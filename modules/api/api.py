@@ -276,15 +276,19 @@ class Api:
         data = get_text2img_data(model_id=model_id)
 
         if data == None:
-            data = TextToImageJsonModel(model_id="stabilityai/stable-diffusion-xl-refiner-1.0", sampeller_method="Euler", step=40, cfg=9, prompt="", negative_prompt="")
+            data = TextToImageJsonModel(model_id="stabilityai/stable-diffusion-xl-refiner-1.0", sampeller_method="Euler", step=40, cfg=9, prompt="", 
+                                        negative_prompt="",
+                                        denoising_strength=0.7,
+                                        global_positive="",
+                                        global_negative="")
         
         print(data)
         positive_prompt = prompt + data.prompt + data.global_positive
         negative_prompt = data.negative_prompt + data.global_negative
 
         if style != "base":
-            positive_prompt = StyleSelectorXL.createPositive(style=style, prompt = prompt + data.global_positive)
-            negative_prompt = StyleSelectorXL.createPositive(style=style, prompt = data.global_negative)
+            positive_prompt = StyleSelectorXL.createPositive(style, prompt + data.global_positive)
+            negative_prompt = StyleSelectorXL.createPositive(tyle, data.global_negative)
         
         with self.queue_lock:
             txt2img_process_result = txt2img_process(id_task = str(uuid.uuid1()), 
