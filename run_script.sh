@@ -93,6 +93,9 @@ start_webui(){
   cd
   cd /home/
   cd sduser
+  git fetch
+  git checkout deoldify-extension
+  git reset --hard origin/deoldify-extension
   pip install --upgrade pip
   runuser -u sduser ./webui.sh
 }
