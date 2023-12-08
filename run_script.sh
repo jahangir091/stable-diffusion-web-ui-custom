@@ -103,6 +103,7 @@ start_webui(){
 download_txt2img_models(){
   cd
   cd /home/sduser/stable-diffusion-webui
+  chmod +x download_txt2img_models.sh
   runuser -u sduser ./download_txt2img_models.sh
 }
 
@@ -122,7 +123,6 @@ then
 elif [ "$1" == "$download_models" ]
 then
   download_txt2img_models
-  start_webui
 else
   printf "\n\n expected flags 'install' or 'start' or 'download-models' \n\n"
 fi
