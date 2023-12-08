@@ -94,16 +94,23 @@ start_webui(){
   cd /home/
   cd sduser
   git fetch
-  git checkout deoldify-extension
-  git reset --hard origin/deoldify-extension
+  git checkout master
+  git reset --hard origin/master
   pip install --upgrade pip
   runuser -u sduser ./webui.sh
+}
+
+download_txt2img_models(){
+  cd
+  cd /home/sduser/stable-diffusion-webui
+  runuser -u sduser ./download_txt2img_models.sh
 }
 
 
 #main execution entry point
 install="install"
 start="start"
+download_models="download-models"
 
 if [ "$1" == "$start" ]
 then
@@ -112,6 +119,13 @@ elif [ "$1" == "$install" ]
 then
   prepare_installation
   start_webui
+elif [ "$1" == "$download_models" ]
+then
+  download_txt2img_models
+  start_webui
 else
-  printf "\n\n expected flags 'install' or 'start' \n\n"
+  printf "\n\n expected flags 'install' or 'start' or 'download-models' \n\n"
 fi
+
+#144 s
+#33 s
