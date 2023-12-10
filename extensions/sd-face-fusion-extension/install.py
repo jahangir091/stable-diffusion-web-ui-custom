@@ -19,52 +19,52 @@ def _get_installed_version(package: str) -> str | None:
         return None
 
 
-if not launch.is_installed("onnxruntime") and not launch.is_installed("onnxruntime-gpu"):
-    import torch.cuda as cuda
+# if not launch.is_installed("onnxruntime") and not launch.is_installed("onnxruntime-gpu"):
+#     import torch.cuda as cuda
+#
+#     if cuda.is_available():
+#         launch.run_pip("install 'onnxruntime-gpu>=1.16.0'")
+#     else:
+#         launch.run_pip("install 'onnxruntime>=1.16.0'")
 
-    if cuda.is_available():
-        launch.run_pip("install 'onnxruntime-gpu>=1.16.0'")
-    else:
-        launch.run_pip("install 'onnxruntime>=1.16.0'")
 
-
-with _REQUIREMENT_PATH.open() as fp:
-    for requirement in fp:
-        try:
-            requirement = requirement.strip()
-            if "==" in requirement:
-                name, version = requirement.split("==", 1)
-                installed_version = _get_installed_version(name)
-
-                if installed_version == version:
-                    continue
-
-                launch.run_pip(
-                    f'install -U "{requirement}"',
-                    f"sd-webui-facefusion requirement: changing {name} version from {installed_version} to {version}",
-                )
-                continue
-
-            if ">=" in requirement:
-                name, version = requirement.split(">=", 1)
-                installed_version = _get_installed_version(name)
-
-                if installed_version and (
-                    _get_comparable_version(installed_version) >= _get_comparable_version(version)
-                ):
-                    continue
-
-                launch.run_pip(
-                    f'install -U "{requirement}"',
-                    f"sd-webui-facefusion requirement: changing {name} version from {installed_version} to {version}",
-                )
-                continue
-
-            if not launch.is_installed(requirement):
-                launch.run_pip(
-                    f'install "{requirement}"',
-                    f"sd-webui-facefusion requirement: {requirement}",
-                )
-        except Exception as error:
-            print(error)
-            print(f"Warning: Failed to install '{requirement}', some preprocessors may not work.")
+# with _REQUIREMENT_PATH.open() as fp:
+#     for requirement in fp:
+#         try:
+#             requirement = requirement.strip()
+#             if "==" in requirement:
+#                 name, version = requirement.split("==", 1)
+#                 installed_version = _get_installed_version(name)
+#
+#                 if installed_version == version:
+#                     continue
+#
+#                 launch.run_pip(
+#                     f'install -U "{requirement}"',
+#                     f"sd-webui-facefusion requirement: changing {name} version from {installed_version} to {version}",
+#                 )
+#                 continue
+#
+#             if ">=" in requirement:
+#                 name, version = requirement.split(">=", 1)
+#                 installed_version = _get_installed_version(name)
+#
+#                 if installed_version and (
+#                     _get_comparable_version(installed_version) >= _get_comparable_version(version)
+#                 ):
+#                     continue
+#
+#                 launch.run_pip(
+#                     f'install -U "{requirement}"',
+#                     f"sd-webui-facefusion requirement: changing {name} version from {installed_version} to {version}",
+#                 )
+#                 continue
+#
+#             if not launch.is_installed(requirement):
+#                 launch.run_pip(
+#                     f'install "{requirement}"',
+#                     f"sd-webui-facefusion requirement: {requirement}",
+#                 )
+#         except Exception as error:
+#             print(error)
+#             print(f"Warning: Failed to install '{requirement}', some preprocessors may not work.")

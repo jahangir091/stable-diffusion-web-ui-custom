@@ -25,4 +25,4 @@ else:
 import subprocess
 import launch
 
-launch.run_pip(f"install -r \"{os.path.join(ext_dir, 'requirements.txt')}\"", "requirements for arifScratchRemoverWebUIExtention")
+# launch.run_pip(f"install -r \"{os.path.join(ext_dir, 'requirements.txt')}\"", "requirements for arifScratchRemoverWebUIExtention")

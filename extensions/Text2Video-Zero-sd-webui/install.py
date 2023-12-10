@@ -25,4 +25,4 @@ else:
 import subprocess
 import launch
 
-launch.run_pip(f"install -r \"{os.path.join(ext_dir, 'requirements.txt')}\"", "requirements for Text2Video-Zero")
+# launch.run_pip(f"install -r \"{os.path.join(ext_dir, 'requirements.txt')}\"", "requirements for Text2Video-Zero")
