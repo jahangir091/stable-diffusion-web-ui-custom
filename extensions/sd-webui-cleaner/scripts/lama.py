@@ -36,9 +36,6 @@ def clean_object(image,mask):
         result = Lama.predict(init_image, mask_image)
     except:
         pass
-    finally:
-        print('############# lama using CPU ###########################')
-        Lama.to("cpu")
     
     return [result]
 
