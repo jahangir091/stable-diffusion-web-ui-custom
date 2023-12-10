@@ -72,4 +72,4 @@ beautifulsoup4
 bs4
 
 #-----------------------------requirements for lama cleaner extension-------------------------------------------------
-litelama==0.1.7
+#litelama==0.1.7
