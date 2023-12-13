@@ -80,15 +80,9 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
 
     def remove_scratch_using_mask(source_image: UploadFile):
         curDir = os.getcwd()
-        # input_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/Arif/"
 
         fileName = source_image.filename
         filename_without_extention = os.path.splitext(fileName)[0]
-
-        # source_file_location = input_dir + source_image.filename
-        # save_file(source_image, source_file_location)
-        # input_image = PIL.Image.open(source_file_location).convert('RGB')
-        # input_image = PIL.Image.open(img_p).convert('RGB')
 
         input_path = curDir + "/extensions/arifScratchRemoverWebUIExtention/input_images"
         output_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks"
@@ -101,11 +95,6 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         # Save the input image to a directory
         source_file_location = input_path + "/" + fileName
         save_file(source_image, source_file_location)
-
-        # remove_all_file_in_dir(folder=("%s/*" % input_path))
-        # input_image_path = (f'{input_path}/{fileName}')
-        # # input_image_resized = resize_image(input_image, 768)
-        # input_image.save(input_image_path)
 
         scratch_detector = ScratchDetection(input_path, output_dir, input_size="scale_256", gpu=0)
         scratch_detector.run()
@@ -122,9 +111,7 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         mask_image_np_dilated = cv2.dilate(mask_image_np, kernel, iterations=2)
         mask_image_dilated = Image.fromarray(mask_image_np_dilated)
 
-
         ##scratck removing
-
         main_image_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/" + filename_without_extention + pngExt
         main_image = Image.open(main_image_dir).convert("RGB")
         main_image = resize_image(main_image, 768)
@@ -150,58 +137,11 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             controlnet_conditioning_scale=0,
             mask_image=main_mask
         ).images[0]
-#
-#         {
-#   "resize_mode": 0,
-#   "show_extras_results": true,
-#   "gfpgan_visibility": 0,
-#   "codeformer_visibility": 0,
-#   "codeformer_weight": 0,
-#   "upscaling_resize": 2,
-#   "upscaling_resize_w": 512,
-#   "upscaling_resize_h": 512,
-#   "upscaling_crop": true,
-#   "upscaler_1": "None",
-#   "upscaler_2": "None",
-#   "extras_upscaler_2_visibility": 0,
-#   "upscale_first": false,
-#   "image": ""
-# }
-
-
-        reqDict = models.ExtrasSingleImageResponse()
-        r_m:Literal[0, 1] = 1
-        reqDict['resize_mode'] = r_m
-        reqDict['show_extras_results'] = True
-        reqDict['gfpgan_visibility'] = float(1.0)
-        reqDict['codeformer_visibility'] = float(1.0)
-        reqDict['codeformer_weight'] = float(0.0)
-        reqDict['upscaling_resize'] = float(2.0)
-        reqDict['upscaling_resize_w'] = 512
-        reqDict['upscaling_resize_h'] = 512
-        reqDict['upscaling_crop'] = True
-        reqDict['extras_upscaler_1'] = reqDict.pop('upscaler_1', 'None')
-        reqDict['extras_upscaler_2'] = reqDict.pop('upscaler_2', 'None')
-        reqDict['extras_upscaler_2_visibility'] = 1
-        reqDict['upscale_first'] = False
-
-        reqDict['image'] = without_scratch_Image_output
-
-        result = postprocessing.run_extras(extras_mode=0, image_folder="", input_dir="", output_dir="", save_output=False, **reqDict)
-        upscale_img = result[0][0]
-
-
         #return base64 image
-        opencvImage = cv2.cvtColor(numpy.array(upscale_img), cv2.COLOR_RGB2BGR)
+        opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
         _, encoded_img = cv2.imencode('.jpg', opencvImage)
         img_str = base64.b64encode(encoded_img).decode("utf-8")
         return img_str
-
-        # opencvImage = cv2.cvtColor(numpy.array(mask_image_dilated), cv2.COLOR_RGB2BGR)
-        # buffered = BytesIO()
-        # mask_image_dilated.save(buffered, format="JPEG")
-        # img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        # return img_str
 
     def save_file(file: UploadFile, path: str):
         with open(path, "wb+") as file_object:
