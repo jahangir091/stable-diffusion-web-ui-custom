@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore", category=UserWarning, message="The parameter '
 warnings.filterwarnings("ignore", category=FutureWarning, message="Arguments other than a weight enum or `None`.*?")
 
 def deoldify_api(_: gr.Blocks, app: FastAPI):
-    @app.post("/deoldify/image")
+    @app.post("/sdwebui/ai/deoldify/image")
     async def deoldify_image(
         input_image: str = Body("",title="image input"),
         render_factor: int = Body(35,title="render factor"),
