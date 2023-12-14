@@ -1,12 +1,14 @@
 import contextlib
 
 import gradio as gr
-# from modules import scripts, shared, script_callbacks
+from modules import scripts
 # from modules.ui_components import FormRow, FormColumn, FormGroup, ToolButton
 import json
 import os
 import random
 stylespath = "sdxl_styles.json"
+
+from modules.api.models import TextToImageStyleInfo
 
 
 def get_json_content(file_path):
@@ -37,6 +39,42 @@ def read_sdxl_styles(json_data):
     names.sort()
     return names
 
+def getStylesInfo():
+    global stylespath
+    json_path = os.path.join(scripts.basedir(), 'sdxl_styles.json')
+    stylespath = json_path
+    json_data = get_json_content(json_path)
+
+    styles = []
+    
+    if not isinstance(json_data, list):
+        print("Error: input data must be a list")
+        return styles
+    
+    isPremium = 'isPremium'
+    isActive = 'isActive'
+    priority = 'priority'
+    id = 'id'
+    style_name = 'name'
+    display_name = 'display_name'
+    thumbnail_url = 'thumbnail_url'
+
+    # Iterate over each item in the data list
+    for item in json_data:
+        # Check that the item is a dictionary
+        if isinstance(item, dict):
+            # Check that 'name' is a key in the dictionary
+            if display_name in item and style_name in item and priority in item and id in item and isPremium in item and isActive in item and thumbnail_url in item:
+                # Append to the list
+                if item[isActive] == True:
+                    styleInfo = TextToImageStyleInfo(id=item[id],
+                                                name=item[display_name],
+                                                style=item[style_name],
+                                                isPremium=item[isPremium],
+                                                priority=item[priority],
+                                                thumbnail_url=thumbnail_url)
+                    styles.append(styleInfo)
+    return styles
 
 def getStyles():
     global stylespath

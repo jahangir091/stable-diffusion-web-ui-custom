@@ -145,6 +145,7 @@ class ImageToImageResponse(BaseModel):
     info: str
 
 class TextToImageJsonModel(BaseModel):
+    # id: int
     model_id: str
     sampeller_method: str
     step: int
@@ -154,6 +155,9 @@ class TextToImageJsonModel(BaseModel):
     denoising_strength: float
     global_positive: str
     global_negative: str
+    # isActive: bool
+    # isPremium: bool
+
 
 
 
@@ -274,6 +278,21 @@ class SDModelItem(BaseModel):
     sha256: Optional[str] = Field(title="sha256 hash")
     filename: str = Field(title="Filename")
     config: Optional[str] = Field(title="Config file")
+
+class TextToImageModelInfo(BaseModel):
+    id: int = Field(title="unique id")
+    name: str = Field(title="Title")
+    isPremium: bool = Field(title="if this item is premium")
+    thumbnail_url: str = Field(title="thumbnail url")
+    priority: int = Field(title="lower value will be shown first")
+
+class TextToImageStyleInfo(BaseModel):
+    id: int = Field(title="unique id")
+    name: str = Field(title="Title")
+    style: str = Field(title="style that will be used to generate image and video")
+    isPremium: bool = Field(title="if this item is premium")
+    thumbnail_url: str = Field(title="thumbnail url")
+    priority: int = Field(title="lower value will be shown first")
 
 class SDVaeItem(BaseModel):
     model_name: str = Field(title="Model Name")

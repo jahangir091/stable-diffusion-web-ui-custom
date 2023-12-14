@@ -36,7 +36,7 @@ from contextlib import closing
 
 # Needed for txt2img enhance api
 from modules.txt2img import txt2img_process
-from modules.json_helper import get_text2img_data
+from modules.json_helper import get_text2img_data, get_text2img_model_list
 from modules.api.models import TextToImageJsonModel
 from modules import StyleSelectorXL
 import uuid
@@ -217,7 +217,9 @@ class Api:
         self.app = app
         self.queue_lock = queue_lock
         api_middleware(self.app)
-        self.add_api_route("/sdapi/ai/v1/txt2img", self.text2imggenerateapi, methods=["POST"], response_model=models.TextToImageResponseAPI)
+        self.add_api_route("/sdapi/ai/v1/txt2img/models", self.text2imagemodelsapi, methods=["GET"], response_model=List[models.TextToImageModelInfo])
+        self.add_api_route("/sdapi/ai/v1/txt2img/styles", self.text2imagestylesapi, methods=["GET"], response_model=List[models.TextToImageStyleInfo])
+        self.add_api_route("/sdapi/ai/v1/txt2img/generate", self.text2imggenerateapi, methods=["POST"], response_model=models.TextToImageResponseAPI)
         # self.add_api_route("/sdapi/ai/v1/txt2img", self.text2imgapi, methods=["POST"], response_model=models.TextToImageResponse)
         self.add_api_route("/sdapi/ai/v1/img2img", self.img2imgapi, methods=["POST"], response_model=models.ImageToImageResponse)
         self.add_api_route("/sdapi/ai/v1/extra-single-image", self.extras_single_image_api, methods=["POST"], response_model=models.ExtrasSingleImageResponse)
@@ -260,10 +262,36 @@ class Api:
 
         self.default_script_arg_txt2img = []
         self.default_script_arg_img2img = []
+    
+    def text2imagestylesapi(self):
+        return [
+            {
+                "id": style.id,
+                "name": style.name,
+                "style": style.style,
+                "isPremium": style.isPremium,
+                "thumbnail_url": style.thumbnail_url,
+                "priority": style.priority
+            }
+            for style in StyleSelectorXL.getStylesInfo()
+        ]
+    
+    def text2imagemodelsapi(self):
+        return [
+            {
+                "id": model.id,
+                "name": model.name,
+                "isPremium": model.isPremium,
+                "thumbnail_url": model.thumbnail_url,
+                "priority": model.priority
+            }
+            for model in get_text2img_model_list()
+        ]
 
     def text2imggenerateapi(self, prompt: str = Body(title='user prompt'), 
-                            model_id: str = Body(title='model unique id'), 
+                            model_id: int = Body(title='model unique id'), 
                             seed: int = Body(-1, title="seed value"),
+                            batch_count: int = Body(1, title="no of batch to produce at a time"),
                             batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"), 
                             style: str = Body("base", title='selected style of user'),
                             size: int = Body(768, title = 'height & width of generated image')):
@@ -273,7 +301,7 @@ class Api:
         if prompt == None or prompt == "":
             raise HTTPException(status_code=422, detail= "please give a non empty prompt")
 
-        data = get_text2img_data(model_id=model_id)
+        data = get_text2img_data(id=model_id)
 
         if data == None:
             data = TextToImageJsonModel(model_id="stabilityai/stable-diffusion-xl-refiner-1.0", sampeller_method="Euler", step=40, cfg=9, prompt="", 
@@ -292,12 +320,12 @@ class Api:
         
         with self.queue_lock:
             txt2img_process_result = txt2img_process(id_task = str(uuid.uuid1()), 
-                model_id = model_id,
+                model_id = data.model_id,
                 prompt = positive_prompt, 
                 negative_prompt = negative_prompt,  
                 steps = data.step, 
                 sampler_name = data.sampeller_method,
-                n_iter = 1,
+                n_iter = batch_count,
                 batch_size = batch_size, 
                 cfg_scale = data.cfg, 
                 height = size, width = size,
