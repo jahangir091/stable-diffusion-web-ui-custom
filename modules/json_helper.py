@@ -1,7 +1,8 @@
 import json
 import os
 from modules import scripts
-from modules.api.models import TextToImageJsonModel
+from modules.api.models import TextToImageJsonModel, TextToImageModelInfo
+
 
 def get_json_content(file_path):
     try:
@@ -12,10 +13,49 @@ def get_json_content(file_path):
         print(f"A Problem occurred: {str(e)}")
     return []
 
-def get_text2img_data(model_id: str):
+def get_text2img_model_list():
+    model_info = 'model_info'
+    isPremium = 'isPremium'
+    isActive = 'isActive'
+    priority = 'priority'
+    id = 'id'
+    name = 'display_name'
+    thumbnail_url = 'thumbnail_url'
+
+    model_info_list = []
+
+    json_path = os.path.join(scripts.basedir(), 'text2img.json')
+    json_data = get_json_content(json_path)
+
+    if not model_info in json_data:
+        print("Error: can't extract model info from json")
+        return model_info_list
+    
+    model_info_dict = json_data[model_info]
+    if not isinstance(model_info_dict, list):
+        print("Error: model info must be a list")
+        return model_info_list
+    
+    for item in model_info_dict:
+        # Check that the item is a dictionary
+        if isinstance(item, dict):
+            if isPremium in item and isActive in item and id in item and priority in item and name in item and thumbnail_url in item:
+                if item[isActive] == True:
+                    model_info = TextToImageModelInfo(id=item[id],
+                                                name=item[name],
+                                                isPremium=item[isPremium],
+                                                priority=item[priority],
+                                                thumbnail_url = item[thumbnail_url])
+                    model_info_list.append(model_info)
+    return model_info_list
+  
+
+def get_text2img_data(id: int):
     json_path = os.path.join(scripts.basedir(), 'text2img.json')
     json_data = get_json_content(json_path)
     
+    id_key = 'id'
+    model_id = 'model_id'
     model_info = 'model_info'
     global_pos_prompt_key = 'global_pos_prompt'
     global_neg_prompt_key = 'global_neg_prompt'
@@ -54,9 +94,9 @@ def get_text2img_data(model_id: str):
         # Check that the item is a dictionary
         if isinstance(item, dict):
             # Check that all required key is in the dictionary
-            if model_id_key in item and item[model_id_key] == model_id:
+            if id_key in item and item[id_key] == id:
                 if sampeller_method in item and step in item and cfg in item and prompt in item and negative_prompt in item and denoising_strength in item:
-                    return TextToImageJsonModel(model_id = model_id, 
+                    return TextToImageJsonModel(model_id = item[model_id], 
                                                 sampeller_method = item[sampeller_method], 
                                                 step = item[step], 
                                                 cfg = item[cfg], 
