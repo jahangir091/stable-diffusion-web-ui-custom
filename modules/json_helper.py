@@ -54,7 +54,7 @@ def get_text2img_data(id: int):
     json_path = os.path.join(scripts.basedir(), 'text2img.json')
     json_data = get_json_content(json_path)
     
-    id = 'id'
+    id_key = 'id'
     model_id = 'model_id'
     model_info = 'model_info'
     global_pos_prompt_key = 'global_pos_prompt'
@@ -94,7 +94,7 @@ def get_text2img_data(id: int):
         # Check that the item is a dictionary
         if isinstance(item, dict):
             # Check that all required key is in the dictionary
-            if id in item and item[id] == id:
+            if id_key in item and item[id_key] == id:
                 if sampeller_method in item and step in item and cfg in item and prompt in item and negative_prompt in item and denoising_strength in item:
                     return TextToImageJsonModel(model_id = item[model_id], 
                                                 sampeller_method = item[sampeller_method], 
