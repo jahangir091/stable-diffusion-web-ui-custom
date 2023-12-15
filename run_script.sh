@@ -93,12 +93,10 @@ start_webui(){
   cd
   cd /home/
   cd sduser
-  cd stable-diffusion-webui
   git fetch
   git checkout master
   git reset --hard origin/master
   pip install --upgrade pip
-  cd ..
   runuser -u sduser ./webui.sh
 }
 
