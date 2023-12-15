@@ -292,7 +292,9 @@ class Api:
                             model_id: int = Body(title='model unique id'), 
                             seed: int = Body(-1, title="seed value"),
                             batch_count: int = Body(1, title="no of batch to produce at a time"),
-                            batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"), 
+                            steps: int = Body(None, title="steps for image generation"),
+                            cfg_scale: float = Body(None, title="cfg scale"),
+                            batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"),
                             style: str = Body("base", title='selected style of user'),
                             size: int = Body(768, title = 'height & width of generated image')):
         start_time = time.time()
@@ -323,11 +325,11 @@ class Api:
                 model_id = data.model_id,
                 prompt = positive_prompt, 
                 negative_prompt = negative_prompt,  
-                steps = data.step, 
+                steps = steps if steps else data.step,
                 sampler_name = data.sampeller_method,
                 n_iter = batch_count,
                 batch_size = batch_size, 
-                cfg_scale = data.cfg, 
+                cfg_scale = cfg_scale if cfg_scale else data.cfg,
                 height = size, width = size,
                 seed = seed, 
                 denoising_strength = data.denoising_strength)
