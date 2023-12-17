@@ -37,8 +37,13 @@ prepare_installation(){
   printf "\n%s\n" "${delemeter2}"
   apt install nvtop vim -y
 
+  apt purge nginx nginx-common
+  apt autoremove
+
   printf "\n%s\n" "${delemeter3}"
   apt install libgl1 libglib2.0-0 ffmpeg gcc build-essential nginx -y
+  rm -rf /etc/nginx/sites-available/default
+  rm -rf /etc/nginx/sites-enabled/default
 
   printf "\n%s\n" "${delemeter4}"
   cmd=$(curl -v -H -s "A: B" curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash)
