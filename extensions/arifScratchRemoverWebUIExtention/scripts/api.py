@@ -24,7 +24,7 @@ from sympy import true, false
 from modules.api.models import *
 from modules.api import api
 from modules.api import models
-from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, postprocessing, errors, restart, shared_items
+from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, postprocessing, errors, restart, shared_items, postprocessing
 from typing_extensions import Literal
 
 
@@ -138,10 +138,50 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             mask_image=main_mask
         ).images[0]
         #return base64 image
-        opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
-        _, encoded_img = cv2.imencode('.jpg', opencvImage)
-        img_str = base64.b64encode(encoded_img).decode("utf-8")
+        # opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
+        # _, encoded_img = cv2.imencode('.jpg', opencvImage)
+        # img_str = base64.b64encode(encoded_img).decode("utf-8")
+        # return img_str
+
+
+        args = scripts.scripts_postproc.create_args_for_run({
+            "Upscale": {
+                "upscale_mode": 0,
+                "upscale_by": 1,
+                "upscale_to_width": 512,
+                "upscale_to_height": 512,
+                "upscale_crop": True,
+                "upscaler_1_name": "R-ESRGAN 4x+",
+                "upscaler_2_name": "SwinIR_4x",
+                "upscaler_2_visibility": 1,
+            },
+            "GFPGAN": {
+                "gfpgan_visibility": 1,
+            },
+            "CodeFormer": {
+                "codeformer_visibility": 0.75,
+                "codeformer_weight": 0,
+            },
+        })
+
+        # new_Image = postprocessing.run_postprocessing(0, without_scratch_Image_output, "", "", "", True, *args, save_output=False)
+        # opencvImage = cv2.cvtColor(numpy.array(new_Image), cv2.COLOR_RGB2BGR)
+        # _, encoded_img = cv2.imencode('.jpg', opencvImage)
+        # img_str = base64.b64encode(encoded_img).decode("utf-8")
+        result = postprocessing.run_postprocessing(0, without_scratch_Image_output, "", "", "", True, *args, save_output=False)
+        img_str = api.encode_pil_to_base64(result[0][0])
         return img_str
+
+
+
+
+
+
+
+
+
+
+
 
     def save_file(file: UploadFile, path: str):
         with open(path, "wb+") as file_object:
@@ -177,6 +217,22 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             command_str = "wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt" + " -P " + model_dir
             runcmd(command_str, verbose=True)
             print("model downloaded done")
+
+
+        # new
+        upscaleDir = curDir + "/extensions/arifScratchRemoverWebUIExtention/Bringing-Old-Photos-Back-to-Life/"
+        check_file = "/extensions/arifScratchRemoverWebUIExtention/Bringing-Old-Photos-Back-to-Life/Global/global_checkpoints.zip"
+        if exists(check_file):
+            print("all MS upscale already downloaded")
+            return
+        else:
+            shDir = upscaleDir+"download-weights.sh"
+            command_str = "sudo chmod +x "+shDir+" "+upscaleDir
+            runcmd(command_str, verbose=True)
+            print("all MS scr model downloaded done")
+
+
+
     def runcmd(cmd, verbose=False, *args, **kwargs):
 
         process = subprocess.Popen(
