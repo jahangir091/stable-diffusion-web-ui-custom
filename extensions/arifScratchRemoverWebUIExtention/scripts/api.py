@@ -21,8 +21,10 @@ import  numpy
 from sympy import true, false
 
 #new
+from modules.api.models import *
+from modules.api import api
 from modules.api import models
-from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, postprocessing, errors, restart, shared_items
+from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, postprocessing, errors, restart, shared_items, postprocessing
 from typing_extensions import Literal
 
 
@@ -62,13 +64,15 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
 
     @app.post('/sdapi/ai/v1/scratch_remove')
     async def generate_mask_image(
-            source_image: UploadFile = File()
+        input_image: str = Body("", title='scratch remove input image'),
+        upscale: bool = Body(False, title='input image name')
     ):
         utc_time = datetime.now(timezone.utc)
         start_time = time.time()
 
         downloadScratchRemoverModelModel()
-        image_base64_str = remove_scratch_using_mask(source_image)
+        pil_image = api.decode_base64_to_image(input_image)
+        image_base64_str = remove_scratch_using_mask(pil_image, upscale)
 
         end_time = time.time()
         server_process_time = end_time - start_time
@@ -78,11 +82,9 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             "output_image": image_base64_str
         }
 
-    def remove_scratch_using_mask(source_image: UploadFile):
+    def remove_scratch_using_mask(source_image: Image, upscale : bool):
         curDir = os.getcwd()
-
-        fileName = source_image.filename
-        filename_without_extention = os.path.splitext(fileName)[0]
+        fileName = "arif.png"
 
         input_path = curDir + "/extensions/arifScratchRemoverWebUIExtention/input_images"
         output_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks"
@@ -94,13 +96,11 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
 
         # Save the input image to a directory
         source_file_location = input_path + "/" + fileName
-        save_file(source_image, source_file_location)
+        image = source_image.save(f"{source_file_location}")
 
         scratch_detector = ScratchDetection(input_path, output_dir, input_size="scale_256", gpu=0)
         scratch_detector.run()
-
-        pngExt = '.png'
-        mask_image = scratch_detector.get_mask_image((filename_without_extention + pngExt))
+        mask_image = scratch_detector.get_mask_image(fileName)
 
         # Resize the mask to match the input image size
         mask_image = mask_image.resize(mask_image.size, Image.BICUBIC)
@@ -112,7 +112,7 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         mask_image_dilated = Image.fromarray(mask_image_np_dilated)
 
         ##scratck removing
-        main_image_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/" + filename_without_extention + pngExt
+        main_image_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/" + fileName
         main_image = Image.open(main_image_dir).convert("RGB")
         main_image = resize_image(main_image, 768)
 
@@ -138,10 +138,37 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             mask_image=main_mask
         ).images[0]
         #return base64 image
-        opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
-        _, encoded_img = cv2.imencode('.jpg', opencvImage)
-        img_str = base64.b64encode(encoded_img).decode("utf-8")
+        if upscale == False:
+            opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
+            _, encoded_img = cv2.imencode('.jpg', opencvImage)
+            img_str = base64.b64encode(encoded_img).decode("utf-8")
+            return img_str
+
+        args = scripts.scripts_postproc.create_args_for_run({
+            "Upscale": {
+                "upscale_mode": 0,
+                "upscale_by": 1,
+                "upscale_to_width": 512,
+                "upscale_to_height": 512,
+                "upscale_crop": True,
+                "upscaler_1_name": "R-ESRGAN 4x+",
+                "upscaler_2_name": "SwinIR_4x",
+                "upscaler_2_visibility": 1,
+            },
+            "GFPGAN": {
+                "gfpgan_visibility": 1,
+            },
+            "CodeFormer": {
+                "codeformer_visibility": 0.75,
+                "codeformer_weight": 0,
+            },
+        })
+
+        result = postprocessing.run_postprocessing(0, without_scratch_Image_output, "", "", "", True, *args, save_output=False)
+        img_str = api.encode_pil_to_base64(result[0][0])
         return img_str
+
+
 
     def save_file(file: UploadFile, path: str):
         with open(path, "wb+") as file_object:
@@ -177,6 +204,22 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             command_str = "wget https://www.dropbox.com/s/5jencqq4h59fbtb/FT_Epoch_latest.pt" + " -P " + model_dir
             runcmd(command_str, verbose=True)
             print("model downloaded done")
+
+
+        # new
+        upscaleDir = curDir + "/extensions/arifScratchRemoverWebUIExtention/Bringing-Old-Photos-Back-to-Life/"
+        check_file = "/extensions/arifScratchRemoverWebUIExtention/Bringing-Old-Photos-Back-to-Life/Global/global_checkpoints.zip"
+        if exists(check_file):
+            print("all MS upscale already downloaded")
+            return
+        else:
+            shDir = upscaleDir+"download-weights.sh"
+            command_str = "sudo chmod +x "+shDir+" "+upscaleDir
+            runcmd(command_str, verbose=True)
+            print("all MS scr model downloaded done")
+
+
+
     def runcmd(cmd, verbose=False, *args, **kwargs):
 
         process = subprocess.Popen(
@@ -190,9 +233,6 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         if verbose:
             print(std_out.strip(), std_err)
         pass
-
-
-
 
 
 try:

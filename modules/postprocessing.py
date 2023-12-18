@@ -85,6 +85,8 @@ def run_postprocessing(extras_mode, image, image_folder, input_dir, output_dir, 
 def run_extras(extras_mode, resize_mode, image, image_folder, input_dir, output_dir, show_extras_results, gfpgan_visibility, codeformer_visibility, codeformer_weight, upscaling_resize, upscaling_resize_w, upscaling_resize_h, upscaling_crop, extras_upscaler_1, extras_upscaler_2, extras_upscaler_2_visibility, upscale_first: bool, save_output: bool = True):
     """old handler for API"""
 
+# result = postprocessing.run_extras(extras_mode=0, image_folder="", input_dir="", output_dir="", save_output=False, **reqDict)
+
     args = scripts.scripts_postproc.create_args_for_run({
         "Upscale": {
             "upscale_mode": resize_mode,
