@@ -21,6 +21,8 @@ import  numpy
 from sympy import true, false
 
 #new
+from modules.api.models import *
+from modules.api import api
 from modules.api import models
 from modules import sd_samplers, deepbooru, sd_hijack, images, scripts, ui, postprocessing, errors, restart, shared_items
 from typing_extensions import Literal
@@ -62,13 +64,15 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
 
     @app.post('/sdapi/ai/v1/scratch_remove')
     async def generate_mask_image(
-            source_image: UploadFile = File()
+        input_image: str = Body("", title='scratch remove input image'),
+        image_name: str = Body("", title='input image name')
     ):
         utc_time = datetime.now(timezone.utc)
         start_time = time.time()
 
         downloadScratchRemoverModelModel()
-        image_base64_str = remove_scratch_using_mask(source_image)
+        pil_image = api.decode_base64_to_image(input_image)
+        image_base64_str = remove_scratch_using_mask(pil_image)
 
         end_time = time.time()
         server_process_time = end_time - start_time
@@ -78,11 +82,9 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             "output_image": image_base64_str
         }
 
-    def remove_scratch_using_mask(source_image: UploadFile):
+    def remove_scratch_using_mask(source_image: Image):
         curDir = os.getcwd()
-
-        fileName = source_image.filename
-        filename_without_extention = os.path.splitext(fileName)[0]
+        fileName = "arif.png"
 
         input_path = curDir + "/extensions/arifScratchRemoverWebUIExtention/input_images"
         output_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks"
@@ -94,13 +96,11 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
 
         # Save the input image to a directory
         source_file_location = input_path + "/" + fileName
-        save_file(source_image, source_file_location)
+        image = source_image.save(f"{source_file_location}")
 
         scratch_detector = ScratchDetection(input_path, output_dir, input_size="scale_256", gpu=0)
         scratch_detector.run()
-
-        pngExt = '.png'
-        mask_image = scratch_detector.get_mask_image((filename_without_extention + pngExt))
+        mask_image = scratch_detector.get_mask_image(fileName)
 
         # Resize the mask to match the input image size
         mask_image = mask_image.resize(mask_image.size, Image.BICUBIC)
@@ -112,7 +112,7 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         mask_image_dilated = Image.fromarray(mask_image_np_dilated)
 
         ##scratck removing
-        main_image_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/" + filename_without_extention + pngExt
+        main_image_dir = curDir + "/extensions/arifScratchRemoverWebUIExtention/output_masks/input/" + fileName
         main_image = Image.open(main_image_dir).convert("RGB")
         main_image = resize_image(main_image, 768)
 
@@ -190,9 +190,6 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
         if verbose:
             print(std_out.strip(), std_err)
         pass
-
-
-
 
 
 try:
