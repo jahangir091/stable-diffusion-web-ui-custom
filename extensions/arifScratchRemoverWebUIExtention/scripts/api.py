@@ -65,14 +65,14 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
     @app.post('/sdapi/ai/v1/scratch_remove')
     async def generate_mask_image(
         input_image: str = Body("", title='scratch remove input image'),
-        image_name: str = Body("", title='input image name')
+        upscale: bool = Body(False, title='input image name')
     ):
         utc_time = datetime.now(timezone.utc)
         start_time = time.time()
 
         downloadScratchRemoverModelModel()
         pil_image = api.decode_base64_to_image(input_image)
-        image_base64_str = remove_scratch_using_mask(pil_image)
+        image_base64_str = remove_scratch_using_mask(pil_image, upscale)
 
         end_time = time.time()
         server_process_time = end_time - start_time
@@ -82,7 +82,7 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             "output_image": image_base64_str
         }
 
-    def remove_scratch_using_mask(source_image: Image):
+    def remove_scratch_using_mask(source_image: Image, upscale : bool):
         curDir = os.getcwd()
         fileName = "arif.png"
 
@@ -138,11 +138,11 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             mask_image=main_mask
         ).images[0]
         #return base64 image
-        # opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
-        # _, encoded_img = cv2.imencode('.jpg', opencvImage)
-        # img_str = base64.b64encode(encoded_img).decode("utf-8")
-        # return img_str
-
+        if upscale == False:
+            opencvImage = cv2.cvtColor(numpy.array(without_scratch_Image_output), cv2.COLOR_RGB2BGR)
+            _, encoded_img = cv2.imencode('.jpg', opencvImage)
+            img_str = base64.b64encode(encoded_img).decode("utf-8")
+            return img_str
 
         args = scripts.scripts_postproc.create_args_for_run({
             "Upscale": {
@@ -164,22 +164,9 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
             },
         })
 
-        # new_Image = postprocessing.run_postprocessing(0, without_scratch_Image_output, "", "", "", True, *args, save_output=False)
-        # opencvImage = cv2.cvtColor(numpy.array(new_Image), cv2.COLOR_RGB2BGR)
-        # _, encoded_img = cv2.imencode('.jpg', opencvImage)
-        # img_str = base64.b64encode(encoded_img).decode("utf-8")
         result = postprocessing.run_postprocessing(0, without_scratch_Image_output, "", "", "", True, *args, save_output=False)
         img_str = api.encode_pil_to_base64(result[0][0])
         return img_str
-
-
-
-
-
-
-
-
-
 
 
 
