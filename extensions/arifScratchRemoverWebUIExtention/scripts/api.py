@@ -152,8 +152,8 @@ def scratch_remove_api(_: gr.Blocks, app: FastAPI):
                 "upscale_to_height": 512,
                 "upscale_crop": True,
                 "upscaler_1_name": "R-ESRGAN 4x+",
-                "upscaler_2_name": "SwinIR_4x",
-                "upscaler_2_visibility": 1,
+                "upscaler_2_name": "None",
+                "upscaler_2_visibility": 0,
             },
             "GFPGAN": {
                 "gfpgan_visibility": 1,
