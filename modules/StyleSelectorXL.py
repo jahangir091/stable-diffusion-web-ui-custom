@@ -72,7 +72,7 @@ def getStylesInfo():
                                                 style=item[style_name],
                                                 isPremium=item[isPremium],
                                                 priority=item[priority],
-                                                thumbnail_url=thumbnail_url)
+                                                thumbnail_url=item[thumbnail_url])
                     styles.append(styleInfo)
     return styles
 
