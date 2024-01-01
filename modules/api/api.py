@@ -296,7 +296,8 @@ class Api:
                             cfg_scale: float = Body(None, title="cfg scale"),
                             batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"),
                             style: str = Body("base", title='selected style of user'),
-                            size: int = Body(768, title = 'height & width of generated image')):
+                            height: int = Body(512, title = 'height of generated image'),
+                            width: int = Body(512, title = 'width of generated image')):
         start_time = time.time()
         utc_time = datetime.datetime.now(timezone.utc)
 
@@ -330,7 +331,7 @@ class Api:
                 n_iter = batch_count,
                 batch_size = batch_size, 
                 cfg_scale = cfg_scale if cfg_scale else data.cfg,
-                height = size, width = size,
+                height = height, width = width,
                 seed = seed, 
                 denoising_strength = data.denoising_strength)
         
