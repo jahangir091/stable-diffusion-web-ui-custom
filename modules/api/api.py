@@ -296,7 +296,8 @@ class Api:
                             cfg_scale: float = Body(None, title="cfg scale"),
                             batch_size: int = Body(1, title="no of image to produce at a single batch which may produce same type image"),
                             style: str = Body("base", title='selected style of user'),
-                            size: int = Body(768, title = 'height & width of generated image')):
+                            height: int = Body(512, title = 'height of generated image'),
+                            width: int = Body(512, title = 'width of generated image')):
         start_time = time.time()
         utc_time = datetime.datetime.now(timezone.utc)
 
@@ -312,13 +313,21 @@ class Api:
                                         global_positive="",
                                         global_negative="")
         
-        print(data)
-        positive_prompt = prompt + data.prompt + data.global_positive
-        negative_prompt = data.negative_prompt + data.global_negative
+            
+        positive_prompt = prompt + " " + data.prompt + " " + data.global_positive
+        negative_prompt = data.negative_prompt + " " + data.global_negative
 
         if style != "base":
             positive_prompt = StyleSelectorXL.createPositive(style, prompt + data.global_positive)
             negative_prompt = StyleSelectorXL.createPositive(style, data.global_negative)
+
+        # print("\n\n")
+        # print(data)
+        # print("\n")
+        # print(positive_prompt)
+        # print("\n\n\n")
+        # print(negative_prompt)
+        # print("\n")
         
         with self.queue_lock:
             txt2img_process_result = txt2img_process(id_task = str(uuid.uuid1()), 
@@ -330,7 +339,7 @@ class Api:
                 n_iter = batch_count,
                 batch_size = batch_size, 
                 cfg_scale = cfg_scale if cfg_scale else data.cfg,
-                height = size, width = size,
+                height = height, width = width,
                 seed = seed, 
                 denoising_strength = data.denoising_strength)
         
