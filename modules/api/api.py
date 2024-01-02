@@ -314,8 +314,8 @@ class Api:
                                         global_negative="")
         
             
-        positive_prompt = prompt + data.prompt + data.global_positive
-        negative_prompt = data.negative_prompt + data.global_negative
+        positive_prompt = prompt + " " + data.prompt + " " + data.global_positive
+        negative_prompt = data.negative_prompt + " " + data.global_negative
 
         if style != "base":
             positive_prompt = StyleSelectorXL.createPositive(style, prompt + data.global_positive)
