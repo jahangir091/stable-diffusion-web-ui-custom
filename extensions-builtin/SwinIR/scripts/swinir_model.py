@@ -27,7 +27,7 @@ class UpscalerSwinIR(Upscaler):
         self.user_path = dirname
         super().__init__()
         scalers = []
-        model_files = self.find_models(ext_filter=[".pt", ".pth"])
+        model_files = self.find_swinir_models(self.name, ext_filter=[".pt", ".pth"])
         for model in model_files:
             if model.startswith("http"):
                 name = self.model_name
