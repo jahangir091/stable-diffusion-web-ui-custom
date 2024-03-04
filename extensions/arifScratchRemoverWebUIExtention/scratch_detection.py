@@ -153,6 +153,76 @@ def process_images(test_path, output_dir, input_size="scale_256", gpu=0):
         gc.collect()
         torch.cuda.empty_cache()
 
+
+def process_images_new(scratched_image, input_size="scale_256", gpu=0):
+    print("initializing the dataloader")
+
+    # Initialize the model
+    model = networks.UNet(
+        in_channels=1,
+        out_channels=1,
+        depth=4,
+        conv_num=2,
+        wf=6,
+        padding=True,
+        batch_norm=True,
+        up_mode="upsample",
+        with_tanh=False,
+        sync_bn=True,
+        antialiasing=True,
+    )
+
+    ## load model
+    checkpoint_path = os.path.join(os.path.dirname(__file__), "FT_Epoch_latest.pt")
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    model.load_state_dict(checkpoint["model_state"])
+    print("model weights loaded")
+
+    if gpu >= 0:
+        model.to(gpu)
+    else:
+        model.cpu()
+    model.eval()
+
+    transformed_image_PIL = data_transforms(scratched_image, input_size)
+    scratch_image = transformed_image_PIL.convert("L")
+    scratch_image = tv.transforms.ToTensor()(scratch_image)
+    scratch_image = tv.transforms.Normalize([0.5], [0.5])(scratch_image)
+    scratch_image = torch.unsqueeze(scratch_image, 0)
+    _, _, ow, oh = scratch_image.shape
+    scratch_image_scale = scale_tensor(scratch_image)
+
+    if gpu >= 0:
+        scratch_image_scale = scratch_image_scale.to(gpu)
+    else:
+        scratch_image_scale = scratch_image_scale.cpu()
+    with torch.no_grad():
+        P = torch.sigmoid(model(scratch_image_scale))
+
+    P = P.data.cpu()
+    P = F.interpolate(P, [ow, oh], mode="nearest")
+    gc.collect()
+    torch.cuda.empty_cache()
+    import torchvision.transforms as transforms
+    from PIL import Image
+    transform = transforms.ToPILImage()
+    pil_mask = transform(P.squeeze())
+    return transformed_image_PIL, pil_mask
+    # tv.utils.save_image(
+    #     (P >= 0.4).float(),
+    #     os.path.join(
+    #         output_dir,
+    #         image_name[:-4] + ".png",
+    #     ),
+    #     nrow=1,
+    #     padding=0,
+    #     normalize=True,
+    # )
+    # transformed_image_PIL.save(os.path.join(input_dir, image_name[:-4] + ".png"))
+    # gc.collect()
+    # torch.cuda.empty_cache()
+
+
 # Wrap the scratch detection in a class
 class ScratchDetection:
     def __init__(self, test_path, output_dir, input_size="scale_256", gpu=0):
@@ -169,6 +239,24 @@ class ScratchDetection:
         mask_image_path = os.path.join(self.output_dir, "mask", image_name)
         return Image.open(mask_image_path)
 
+
+class ScratchDetectionNew:
+    def __init__(self, scratched_image, input_size="scale_256", gpu=0):
+        self.scratched_image = scratched_image
+        self.input_size = input_size
+        self.gpu = gpu
+
+    def run(self):
+        pil_image, pil_mask = process_images_new(self.scratched_image, self.input_size, self.gpu)
+        return pil_image, pil_mask
+
+    # Add a function to get the mask image from the output directory
+    def get_mask_image(self, image_name):
+        mask_image_path = os.path.join(self.output_dir, "mask", image_name)
+        return Image.open(mask_image_path)
+
+
+
 # Keep the __main__ part, but modify it to use the new ScratchDetection class
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -180,3 +268,4 @@ if __name__ == "__main__":
 
     scratch_detector = ScratchDetection(args.test_path, args.output_dir, args.input_size, args.GPU)
     scratch_detector.run()
+
